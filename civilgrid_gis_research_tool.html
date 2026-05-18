@@ -1238,15 +1238,19 @@ function selectAgency(i) {
 // ─── RESEARCH ─────────────────────────────────────────────────────────────────
 async function researchAll() {
   if (isResearching) return;
-  const pending = agencies.filter((a, i) => a.status !== 'done');
-  const total = pending.length;
-  let done = 0;
-  for (let i = 0; i < agencies.length; i++) {
-    if (agencies[i].status === 'done') continue;
-    await runResearch(i);
-    done++;
-    if (done < total) {
-      // Wait 15 seconds between requests to avoid rate limits
+
+  const pending = agencies.map((a, i) => i).filter(i => agencies[i].status !== 'done');
+  if (pending.length === 0) { alert('All agencies already researched.'); return; }
+
+  const BATCH_SIZE = 10;
+  const batch = pending.slice(0, BATCH_SIZE);
+  const remaining = pending.length - batch.length;
+
+  for (let b = 0; b < batch.length; b++) {
+    const i = batch[b];
+    await runResearch(i, true);
+    if (b < batch.length - 1) {
+      // 15-second cooldown between agencies to avoid rate limits
       for (let s = 15; s > 0; s--) {
         document.getElementById('agency-count').textContent =
           `${agencies.length} agencies · next in ${s}s`;
@@ -1255,10 +1259,19 @@ async function researchAll() {
       document.getElementById('agency-count').textContent = `${agencies.length} agencies`;
     }
   }
+
+  if (remaining > 0) {
+    const continueNext = confirm(
+      `Batch of ${batch.length} complete!\n\n${remaining} agencies still pending.\n\nClick OK to run the next batch of ${Math.min(BATCH_SIZE, remaining)}.`
+    );
+    if (continueNext) researchAll();
+  } else {
+    alert(`All ${agencies.length} agencies researched!`);
+  }
 }
 
-async function runResearch(idx) {
-  if (isResearching) return;
+async function runResearch(idx, fromBatch = false) {
+  if (isResearching && !fromBatch) return;
 
   // Check API key first
   const apiKey = getApiKey();
