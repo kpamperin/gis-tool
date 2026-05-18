@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0d0f11;
+    --surface: #141618;
+    --surface2: #1a1d20;
+    --border: #2a2d31;
+    --accent: #00e5a0;
+    --accent2: #00b8ff;
+    --accent3: #ff6b35;
+    --text: #e8eaed;
+    --text-dim: #7a7f87;
+    --text-dimmer: #4a4f57;
+    --water: #00b8ff;
+    --storm: #7c5cfc;
+    --sewer: #ff6b35;
+    --success: #00e5a0;
+    --warning: #ffb347;
+    --error: #ff4d6d;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-logo {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 700;
+    color: #000;
+  }
+  .header-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.3);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* MAIN LAYOUT */
+  .main { display: flex; height: calc(100vh - 57px); }
+
+  /* LEFT PANEL */
+  .left-panel {
+    width: 340px;
+    min-width: 340px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .panel-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    margin-bottom: 10px;
+  }
+
+  /* INPUTS */
+  .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .input-group { flex: 1; }
+  .input-label { font-size: 10px; color: var(--text-dim); margin-bottom: 4px; font-family: var(--font-mono); }
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--text-dimmer); }
+  select option { background: var(--surface2); }
+
+  /* CSV UPLOAD */
+  .csv-drop {
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface2);
+  }
+  .csv-drop:hover { border-color: var(--accent); background: rgba(0,229,160,0.03); }
+  .csv-drop-icon { font-size: 18px; margin-bottom: 4px; }
+  .csv-drop-text { font-size: 11px; color: var(--text-dim); }
+  .csv-drop-sub { font-size: 10px; color: var(--text-dimmer); margin-top: 2px; }
+  .csv-file-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: rgba(0,229,160,0.08);
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* AGENCY LIST */
+  .agency-list { max-height: 200px; overflow-y: auto; padding: 8px; }
+  .agency-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    margin-bottom: 3px;
+  }
+  .agency-item:hover { background: var(--surface2); border-color: var(--border); }
+  .agency-item.active { background: rgba(0,229,160,0.08); border-color: rgba(0,229,160,0.3); }
+  .agency-item.researching { border-color: rgba(0,184,255,0.4); animation: pulse 1.5s infinite; }
+  .agency-item.done { border-color: rgba(0,229,160,0.2); }
+  .agency-item.error { border-color: rgba(255,77,109,0.2); }
+
+  @keyframes pulse {
+    0%,100% { background: rgba(0,184,255,0.05); }
+    50% { background: rgba(0,184,255,0.12); }
+  }
+
+  .agency-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dimmer);
+    min-width: 18px;
+  }
+  .agency-name { flex: 1; font-size: 12px; font-weight: 500; }
+  .agency-status {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-dimmer);
+    flex-shrink: 0;
+  }
+  .agency-status.pending { background: var(--text-dimmer); }
+  .agency-status.researching { background: var(--accent2); animation: blink 0.8s infinite; }
+  .agency-status.done { background: var(--accent); }
+  .agency-status.error { background: var(--error); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .agency-tags { display: flex; gap: 3px; }
+  .tag {
+    font-size: 9px; font-family: var(--font-mono);
+    padding: 1px 5px; border-radius: 3px;
+    font-weight: 700; letter-spacing: 0.05em;
+  }
+  .tag-w { background: rgba(0,184,255,0.15); color: var(--water); }
+  .tag-s { background: rgba(124,92,252,0.15); color: var(--storm); }
+  .tag-e { background: rgba(255,107,53,0.15); color: var(--sewer); }
+
+  /* ACTION BUTTONS */
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 14px;
+    border-radius: 6px;
+    border: none; cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    width: 100%;
+  }
+  .btn-primary:hover:not(:disabled) { background: #00ffb0; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 10px;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .actions-row { display: flex; gap: 6px; margin-top: 8px; }
+
+  /* RIGHT PANEL */
+  .right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 20px;
+    gap: 0;
+  }
+  .tab {
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* CONTENT AREA */
+  .content { flex: 1; overflow-y: auto; padding: 20px; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; text-align: center; gap: 12px;
+  }
+  .empty-icon { font-size: 48px; opacity: 0.3; }
+  .empty-title { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
+  .empty-sub { font-size: 12px; color: var(--text-dimmer); max-width: 300px; line-height: 1.5; }
+
+  /* PROGRESS LOG */
+  .progress-log {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  .log-line { margin-bottom: 4px; display: flex; gap: 8px; align-items: flex-start; }
+  .log-time { color: var(--text-dimmer); flex-shrink: 0; }
+  .log-step { color: var(--accent2); }
+  .log-text { color: var(--text-dim); flex: 1; }
+  .log-line.success .log-text { color: var(--accent); }
+  .log-line.warn .log-text { color: var(--warning); }
+  .log-line.error .log-text { color: var(--error); }
+
+  /* UTILITY SECTIONS */
+  .utility-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .utility-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .utility-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    font-weight: 700; font-size: 10px;
+  }
+  .utility-icon.water { background: rgba(0,184,255,0.15); color: var(--water); }
+  .utility-icon.storm { background: rgba(124,92,252,0.15); color: var(--storm); }
+  .utility-icon.sewer { background: rgba(255,107,53,0.15); color: var(--sewer); }
+  .utility-title { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .utility-title.water { color: var(--water); }
+  .utility-title.storm { color: var(--storm); }
+  .utility-title.sewer { color: var(--sewer); }
+  .utility-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dimmer);
+  }
+
+  .utility-body { padding: 12px 16px; }
+
+  /* LAYER TABLE */
+  .layer-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  .layer-table th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    padding: 0 8px 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .layer-table td {
+    padding: 7px 8px 7px 0;
+    font-size: 11px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+  }
+  .layer-name { font-weight: 500; color: var(--text); }
+  .layer-id { font-family: var(--font-mono); font-size: 10px; color: var(--text-dimmer); }
+  .layer-geom {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    background: var(--surface2);
+    color: var(--text-dim);
+  }
+  .layer-url {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent2);
+    word-break: break-all;
+    max-width: 280px;
+  }
+  .layer-url a { color: inherit; text-decoration: none; }
+  .layer-url a:hover { text-decoration: underline; }
+
+  /* GAP BADGES */
+  .gaps-section { margin-top: 8px; }
+  .gaps-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dimmer); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .gaps-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .gap-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(255,77,109,0.08);
+    border: 1px solid rgba(255,77,109,0.2);
+    color: #ff8fa3;
+  }
+  .found-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.2);
+    color: var(--accent);
+  }
+
+  /* CONTACTS */
+  .contacts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .contact-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .contact-tier {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    margin-bottom: 6px;
+  }
+  .contact-tier.t1 { color: var(--accent); }
+  .contact-tier.t2 { color: var(--accent2); }
+  .contact-tier.t3 { color: var(--warning); }
+  .contact-tier.t4 { color: var(--text-dim); }
+  .contact-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .contact-role { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+  .contact-email {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent2);
+    display: block;
+    word-break: break-all;
+  }
+  .contact-phone { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+  .contact-none { font-size: 11px; color: var(--text-dimmer); font-style: italic; }
+
+  /* EMAIL TEMPLATES */
+  .email-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .email-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .email-type { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+  .email-audience { font-family: var(--font-mono); font-size: 10px; color: var(--accent); }
+  .email-body {
+    padding: 14px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-family: var(--font-body);
+  }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* AGENCY HEADER */
+  .agency-header-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .agency-header-name { font-size: 18px; font-weight: 600; }
+  .agency-header-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .agency-score {
+    margin-left: auto;
+    text-align: center;
+  }
+  .score-num { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--accent); }
+  .score-label { font-size: 10px; color: var(--text-dimmer); font-family: var(--font-mono); }
+
+  /* SPINNER */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,229,160,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* GMAIL AUTH */
+  .gmail-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,184,255,0.03);
+  }
+  .gmail-signin-btn {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 12px; font-weight: 500;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .gmail-signin-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .gmail-signin-btn.connected { border-color: rgba(0,229,160,0.4); color: var(--accent); background: rgba(0,229,160,0.06); }
+  .gmail-user { font-size: 10px; color: var(--text-dimmer); margin-top: 4px; font-family: var(--font-mono); }
+
+  /* SEND REVIEW PANEL */
+  .send-review-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .send-count { font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: var(--accent); }
+  .send-count-label { font-size: 11px; color: var(--text-dim); }
+  .send-all-btn {
+    margin-left: auto;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .send-all-btn:hover:not(:disabled) { background: #00ffb0; }
+  .send-all-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .send-agency-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .send-agency-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .send-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  .send-agency-name { font-weight: 600; font-size: 13px; flex: 1; }
+  .send-to { font-family: var(--font-mono); font-size: 10px; color: var(--accent2); }
+  .send-status-badge {
+    font-family: var(--font-mono); font-size: 9px;
+    padding: 2px 7px; border-radius: 3px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .send-status-badge.pending { background: rgba(255,179,71,0.1); color: var(--warning); border: 1px solid rgba(255,179,71,0.3); }
+  .send-status-badge.sent { background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.3); }
+  .send-status-badge.failed { background: rgba(255,77,109,0.1); color: var(--error); border: 1px solid rgba(255,77,109,0.3); }
+  .send-status-badge.skipped { background: rgba(122,127,135,0.1); color: var(--text-dimmer); border: 1px solid rgba(122,127,135,0.2); }
+
+  .send-email-preview {
+    padding: 12px 14px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    max-height: 140px;
+    overflow-y: auto;
+    font-family: var(--font-body);
+    border-bottom: 1px solid var(--border);
+  }
+  .send-email-meta {
+    padding: 8px 14px;
+    display: flex; gap: 16px;
+    font-size: 10px; font-family: var(--font-mono); color: var(--text-dimmer);
+  }
+  .send-email-meta span { color: var(--text-dim); }
+
+  /* API KEY */
+  .apikey-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,229,160,0.03);
+  }
+  .apikey-row { display: flex; gap: 6px; align-items: center; }
+  .apikey-input-wrap { flex: 1; position: relative; }
+  .apikey-input-wrap input {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding-right: 32px;
+    letter-spacing: 0.05em;
+  }
+  .apikey-toggle {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--text-dimmer); font-size: 12px; padding: 0;
+  }
+  .apikey-toggle:hover { color: var(--text); }
+  .apikey-status {
+    font-family: var(--font-mono); font-size: 9px;
+    padding: 2px 6px; border-radius: 3px; white-space: nowrap;
+  }
+  .apikey-status.set { background: rgba(0,229,160,0.12); color: var(--accent); border: 1px solid rgba(0,229,160,0.3); }
+  .apikey-status.unset { background: rgba(255,77,109,0.1); color: #ff8fa3; border: 1px solid rgba(255,77,109,0.25); }
+
+  /* SEND EMAIL BUTTON */
+  .send-row { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-send {
+    flex: 1;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.3);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn-send:hover { background: rgba(0,229,160,0.18); }
+  .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .no-data { font-size: 12px; color: var(--text-dimmer); font-style: italic; padding: 8px 0; }
+
+  /* RESEARCH STEP INDICATORS */
+  .step-indicators { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+  .step-pip {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 3px 7px;
+    border-radius: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dimmer);
+    transition: all 0.3s;
+  }
+  .step-pip.active { border-color: var(--accent2); color: var(--accent2); background: rgba(0,184,255,0.08); }
+  .step-pip.done { border-color: rgba(0,229,160,0.3); color: var(--accent); background: rgba(0,229,160,0.06); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">CG</div>
+  <div>
+    <div class="header-title">CivilGrid // GIS Research Pro</div>
+    <div class="header-sub">Municipal Infrastructure Data Intelligence Tool</div>
+  </div>
+  <div class="header-badge">⚡ AI-POWERED</div>
+</div>
+
+<div class="main">
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <!-- Gmail Auth -->
+    <div class="gmail-section">
+      <div class="panel-label" style="margin-bottom:7px">📧 Gmail Account</div>
+      <button class="gmail-signin-btn" id="gmail-btn" onclick="handleGmailAuth()">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.26 8.8L1 4.54v14.92C1 20.86 2.14 22 3.54 22h14.92l-4.26-4.26-6.94-8.94z"/><path fill="#34A853" d="M18.46 8.8l4.26-4.26H3.54L7.8 8.8l4.2 3.4 6.46-3.4z"/><path fill="#4285F4" d="M22.72 4.54L18.46 8.8 22 12.34V4.54h.72z"/><path fill="#FBBC05" d="M1 4.54l4.26 4.26L1 12.34V4.54z"/></svg>
+        Connect Gmail to Send
+      </button>
+      <div class="gmail-user" id="gmail-user"></div>
+    </div>
+
+    <!-- API Key -->
+    <div class="apikey-section">
+      <div class="panel-label" style="margin-bottom:7px">🔑 Anthropic API Key</div>
+      <div class="apikey-row">
+        <div class="apikey-input-wrap">
+          <input type="password" id="inp-apikey" placeholder="sk-ant-..." oninput="onApiKeyChange()" autocomplete="off" />
+          <button class="apikey-toggle" onclick="toggleApiKeyVisibility()" title="Show/hide key">👁</button>
+        </div>
+        <div class="apikey-status unset" id="apikey-status">NOT SET</div>
+      </div>
+      <div style="font-size:10px;color:var(--text-dimmer);margin-top:5px;">Key stays in browser only — never sent anywhere except Anthropic.</div>
+      <button onclick="testApiKey()" style="margin-top:8px;width:100%;background:rgba(0,184,255,0.1);border:1px solid rgba(0,184,255,0.3);color:var(--accent2);font-family:var(--font-mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;letter-spacing:0.05em;">🧪 TEST API CONNECTION</button>
+      <div id="api-test-result" style="font-size:10px;margin-top:5px;font-family:var(--font-mono);"></div>
+    </div>
+
+    <!-- Sender Profile -->
+    <div class="panel-section">
+      <div class="panel-label">✍️ Sender Profile</div>
+      <div class="input-row">
+        <div class="input-group">
+          <div class="input-label">Full Name</div>
+          <input type="text" id="inp-sender-name" placeholder="Kathryn Pamperin" value="Kathryn Pamperin" />
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <div class="input-label">Title</div>
+          <input type="text" id="inp-sender-title" placeholder="GIS Analyst II" value="GIS Analyst II" />
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <div class="input-label">Email</div>
+          <input type="text" id="inp-sender-email" placeholder="kathryn@civilgrid.com" />
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <div class="input-label">Phone</div>
+          <input type="text" id="inp-sender-phone" placeholder="415-592-6924" value="415-592-6924" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Input -->
+    <div class="panel-section">
+      <div class="panel-label">🏙 Single Agency</div>
+      <div class="input-row">
+        <div class="input-group">
+          <div class="input-label">Municipality</div>
+          <input type="text" id="inp-muni" placeholder="Town of Greenport" />
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <div class="input-label">County</div>
+          <input type="text" id="inp-county" placeholder="Columbia" />
+        </div>
+        <div class="input-group">
+          <div class="input-label">State</div>
+          <input type="text" id="inp-state" placeholder="NY" />
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-research-one" onclick="researchSingle()">
+        <span>▶</span> Research This Agency
+      </button>
+    </div>
+
+    <!-- CSV Upload -->
+    <div class="panel-section">
+      <div class="panel-label">📋 Batch from CSV</div>
+      <div class="csv-drop" 
+        onclick="document.getElementById('csv-input').click()"
+        ondragover="event.preventDefault(); this.style.borderColor='var(--accent)'"
+        ondragleave="this.style.borderColor=''"
+        ondrop="event.preventDefault(); this.style.borderColor=''; handleCSVDrop(event)">
+        <div class="csv-drop-icon">📂</div>
+        <div class="csv-drop-text">Drop CSV or click to upload</div>
+        <div class="csv-drop-sub">Columns: Agency, County, State</div>
+      </div>
+      <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSV(event)" />
+      <div id="csv-filename"></div>
+      <div class="actions-row" style="margin-top:8px">
+        <button class="btn btn-primary" id="btn-research-all" onclick="researchAll()" disabled style="flex:1">
+          <span>⚡</span> Research All
+        </button>
+        <button class="btn btn-ghost" onclick="exportCSV()" id="btn-export" title="Export results to CSV" disabled>↓ CSV</button>
+        <button class="btn btn-ghost" onclick="clearAgencies()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Agency List -->
+    <div class="panel-label" style="padding: 12px 16px 4px; border-top: 1px solid var(--border);">
+      <span id="agency-count">0 agencies</span>
+    </div>
+    <div class="agency-list" id="agency-list">
+      <div style="text-align:center; padding: 20px; color: var(--text-dimmer); font-size:11px;">
+        Add an agency above or upload a CSV
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="tabs">
+      <div class="tab active" id="tab-overview" onclick="switchTab('overview')">Overview</div>
+      <div class="tab" id="tab-gis" onclick="switchTab('gis')">GIS Layers</div>
+      <div class="tab" id="tab-contacts" onclick="switchTab('contacts')">Contacts</div>
+      <div class="tab" id="tab-emails" onclick="switchTab('emails')">Email Templates</div>
+      <div class="tab" id="tab-send" onclick="switchTab('send')">⚡ Send Outreach</div>
+    </div>
+    <div class="content" id="main-content">
+      <div class="empty-state">
+        <div class="empty-icon">🛰</div>
+        <div class="empty-title">No Agency Selected</div>
+        <div class="empty-sub">Enter a municipality above or upload a CSV, then click Research to run the full 8-step GIS intelligence workflow.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── GMAIL OAUTH ──────────────────────────────────────────────────────────────
+const GMAIL_CLIENT_ID = '421972929870-3bbgibgm50g7h63jvdoje4qjjphuokmr.apps.googleusercontent.com';
+const GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.send';
+let gmailToken = null;
+let gmailUserEmail = null;
+let tokenClient = null;
+
+function initGoogleAuth() {
+  if (typeof google === 'undefined') {
+    setTimeout(initGoogleAuth, 500);
+    return;
+  }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GMAIL_CLIENT_ID,
+    scope: GMAIL_SCOPES,
+    callback: (tokenResponse) => {
+      if (tokenResponse.error) {
+        alert('Gmail auth failed: ' + tokenResponse.error);
+        return;
+      }
+      gmailToken = tokenResponse.access_token;
+      // Get user email
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: 'Bearer ' + gmailToken }
+      }).then(r => r.json()).then(info => {
+        gmailUserEmail = info.email;
+        document.getElementById('gmail-user').textContent = '✓ ' + gmailUserEmail;
+        const btn = document.getElementById('gmail-btn');
+        btn.className = 'gmail-signin-btn connected';
+        btn.innerHTML = btn.innerHTML.replace('Connect Gmail to Send', 'Gmail Connected');
+      });
+    }
+  });
+}
+
+function handleGmailAuth() {
+  if (!tokenClient) { alert('Google auth not loaded yet, please wait a moment.'); return; }
+  if (gmailToken) {
+    // Already connected — disconnect
+    gmailToken = null;
+    gmailUserEmail = null;
+    document.getElementById('gmail-user').textContent = '';
+    const btn = document.getElementById('gmail-btn');
+    btn.className = 'gmail-signin-btn';
+    btn.innerHTML = btn.innerHTML.replace('Gmail Connected', 'Connect Gmail to Send');
+    return;
+  }
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+async function sendViaGmail(to, subject, body) {
+  if (!gmailToken) throw new Error('Not authenticated with Gmail');
+  const emailLines = [
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    'Content-Type: text/plain; charset=utf-8',
+    'MIME-Version: 1.0',
+    '',
+    body
+  ];
+  const raw = btoa(unescape(encodeURIComponent(emailLines.join('\r\n'))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const resp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + gmailToken,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ raw })
+  });
+  if (!resp.ok) {
+    const err = await resp.json();
+    throw new Error(err.error?.message || 'Gmail send failed');
+  }
+  return await resp.json();
+}
+
+// ─── SEND OUTREACH TAB ───────────────────────────────────────────────────────
+let sendQueue = {}; // idx -> { checked, status, error }
+
+function getNoGisAgencies() {
+  return agencies.map((a, i) => ({ a, i, r: results[i] })).filter(({ r }) => {
+    if (!r || r.error) return false;
+    const total = (r.water?.layers?.length || 0) + (r.storm?.layers?.length || 0) + (r.sewer?.layers?.length || 0);
+    return total === 0;
+  });
+}
+
+function renderSendTab() {
+  const content = document.getElementById('main-content');
+  const noGis = getNoGisAgencies();
+
+  if (noGis.length === 0) {
+    const doneCount = Object.keys(results).filter(k => results[k] && !results[k].error).length;
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">${doneCount === 0 ? 'No Research Done Yet' : 'All Agencies Have GIS Data'}</div>
+        <div class="empty-sub">${doneCount === 0 ? 'Run Research All first, then come back here to send outreach to agencies with no accessible GIS data.' : 'Every researched agency has accessible GIS layers — no outreach emails needed.'}</div>
+      </div>`;
+    return;
+  }
+
+  // Init queue
+  noGis.forEach(({ i }) => {
+    if (!sendQueue[i]) sendQueue[i] = { checked: true, status: 'pending' };
+  });
+
+  const checkedCount = noGis.filter(({ i }) => sendQueue[i]?.checked).length;
+  const sentCount = noGis.filter(({ i }) => sendQueue[i]?.status === 'sent').length;
+  const gmailReady = !!gmailToken;
+
+  content.innerHTML = `
+    <div class="send-review-header">
+      <div>
+        <div class="send-count">${noGis.length}</div>
+        <div class="send-count-label">Agencies with no GIS data found</div>
+        <div style="font-size:10px;color:var(--text-dimmer);margin-top:2px;">${checkedCount} selected · ${sentCount} sent</div>
+      </div>
+      ${!gmailReady ? `
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:11px;color:var(--warning);font-family:var(--font-mono);">⚠ Connect Gmail first</div>
+          <div style="font-size:10px;color:var(--text-dimmer);margin-top:2px;">Use the panel on the left</div>
+        </div>
+      ` : `
+        <button class="send-all-btn" id="send-all-btn" onclick="sendAllEmails()">
+          ⚡ Send ${checkedCount} Email${checkedCount !== 1 ? 's' : ''}
+        </button>
+      `}
+    </div>
+
+    ${noGis.map(({ a, i, r }) => {
+      const q = sendQueue[i] || { checked: true, status: 'pending' };
+      const contact = (r.contacts || []).find(c => c.tier <= 2 && c.email) || (r.contacts || []).find(c => c.email);
+      const toEmail = contact?.email || 'No email found';
+      const hasEmail = !!contact?.email;
+      const emailBody = r.emailGIS || r.emailUtility || '';
+      const subject = `GIS Infrastructure Data Request — ${r.municipality || a.name}`;
+
+      return `
+        <div class="send-agency-card" id="send-card-${i}">
+          <div class="send-agency-header">
+            <input type="checkbox" class="send-checkbox" ${q.checked ? 'checked' : ''} ${!hasEmail || q.status === 'sent' ? 'disabled' : ''}
+              onchange="toggleSendCheck(${i}, this.checked)" />
+            <div class="send-agency-name">${r.municipality || a.name}</div>
+            <div class="send-to">${toEmail}</div>
+            <div class="send-status-badge ${q.status}" id="send-badge-${i}">${
+              q.status === 'sent' ? '✓ Sent' :
+              q.status === 'failed' ? '✗ Failed' :
+              q.status === 'skipped' ? 'Skipped' :
+              hasEmail ? 'Ready' : 'No Email'
+            }</div>
+          </div>
+          <div class="send-email-preview">${emailBody.substring(0, 400)}${emailBody.length > 400 ? '...' : ''}</div>
+          <div class="send-email-meta">
+            <div>TO: <span>${toEmail}</span></div>
+            <div>SUBJ: <span>${subject}</span></div>
+            ${q.status === 'failed' ? `<div style="color:var(--error)">ERR: <span>${q.error || 'Unknown error'}</span></div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function toggleSendCheck(idx, checked) {
+  if (!sendQueue[idx]) sendQueue[idx] = { checked: true, status: 'pending' };
+  sendQueue[idx].checked = checked;
+  // Update button count
+  const noGis = getNoGisAgencies();
+  const checkedCount = noGis.filter(({ i }) => sendQueue[i]?.checked).length;
+  const btn = document.getElementById('send-all-btn');
+  if (btn) btn.textContent = `⚡ Send ${checkedCount} Email${checkedCount !== 1 ? 's' : ''}`;
+}
+
+async function sendAllEmails() {
+  if (!gmailToken) { alert('Please connect Gmail first.'); return; }
+  const noGis = getNoGisAgencies();
+  const toSend = noGis.filter(({ i }) => sendQueue[i]?.checked && sendQueue[i]?.status === 'pending');
+
+  if (toSend.length === 0) { alert('No emails to send — all are either sent, skipped, or unchecked.'); return; }
+
+  const btn = document.getElementById('send-all-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  for (const { a, i, r } of toSend) {
+    const contact = (r.contacts || []).find(c => c.tier <= 2 && c.email) || (r.contacts || []).find(c => c.email);
+    if (!contact?.email) {
+      sendQueue[i].status = 'skipped';
+      updateSendBadge(i, 'skipped', 'Skipped');
+      continue;
+    }
+
+    const subject = `GIS Infrastructure Data Request — ${r.municipality || a.name}`;
+    const body = r.emailGIS || r.emailUtility || '';
+
+    try {
+      updateSendBadge(i, 'pending', 'Sending...');
+      await sendViaGmail(contact.email, subject, body);
+      sendQueue[i].status = 'sent';
+      updateSendBadge(i, 'sent', '✓ Sent');
+      await new Promise(res => setTimeout(res, 300)); // small delay between sends
+    } catch (err) {
+      sendQueue[i].status = 'failed';
+      sendQueue[i].error = err.message;
+      updateSendBadge(i, 'failed', '✗ Failed');
+    }
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Done'; }
+
+  const sentCount = Object.values(sendQueue).filter(q => q.status === 'sent').length;
+  const failedCount = Object.values(sendQueue).filter(q => q.status === 'failed').length;
+  alert(`Send complete!\n✓ ${sentCount} sent\n${failedCount > 0 ? `✗ ${failedCount} failed — check individual cards for details` : ''}`);
+}
+
+function updateSendBadge(idx, status, text) {
+  const badge = document.getElementById(`send-badge-${idx}`);
+  if (badge) { badge.className = `send-status-badge ${status}`; badge.textContent = text; }
+  const card = document.getElementById(`send-card-${idx}`);
+  if (card) {
+    const meta = card.querySelector('.send-email-meta');
+    if (meta && sendQueue[idx]?.error) {
+      const errDiv = meta.querySelector('[style*="color:var(--error)"]');
+      if (!errDiv) meta.innerHTML += `<div style="color:var(--error)">ERR: <span>${sendQueue[idx].error}</span></div>`;
+    }
+  }
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let agencies = [];
+let results = {}; // keyed by agency index
+let activeAgency = null;
+let activeTab = 'overview';
+let isResearching = false;
+
+async function testApiKey() {
+  const key = getApiKey();
+  const el = document.getElementById('api-test-result');
+  if (!key.startsWith('sk-ant-')) {
+    el.style.color = 'var(--error)';
+    el.textContent = '✗ No valid key entered';
+    return;
+  }
+  el.style.color = 'var(--accent2)';
+  el.textContent = 'Testing...';
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 50,
+        messages: [{ role: 'user', content: 'Reply with just: {"ok":true}' }]
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      el.style.color = 'var(--error)';
+      el.textContent = '✗ Error ' + resp.status + ': ' + (data?.error?.message || resp.statusText);
+      return;
+    }
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    el.style.color = 'var(--accent)';
+    el.textContent = '✓ Connected! Response: ' + text.substring(0, 80);
+  } catch(e) {
+    el.style.color = 'var(--error)';
+    el.textContent = '✗ ' + e.message;
+  }
+}
+
+// ─── API KEY MANAGEMENT ───────────────────────────────────────────────────────
+function getApiKey() {
+  return document.getElementById('inp-apikey').value.trim();
+}
+
+function onApiKeyChange() {
+  const key = getApiKey();
+  const status = document.getElementById('apikey-status');
+  if (key.startsWith('sk-ant-') && key.length > 20) {
+    status.textContent = '✓ SET';
+    status.className = 'apikey-status set';
+  } else if (key.length > 0) {
+    status.textContent = 'INVALID';
+    status.className = 'apikey-status unset';
+  } else {
+    status.textContent = 'NOT SET';
+    status.className = 'apikey-status unset';
+  }
+}
+
+function toggleApiKeyVisibility() {
+  const inp = document.getElementById('inp-apikey');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ─── SENDER PROFILE ──────────────────────────────────────────────────────────
+function getSenderProfile() {
+  const name  = document.getElementById('inp-sender-name').value.trim()  || 'Kathryn Pamperin';
+  const title = document.getElementById('inp-sender-title').value.trim() || 'GIS Analyst II';
+  const email = document.getElementById('inp-sender-email').value.trim() || '';
+  const phone = document.getElementById('inp-sender-phone').value.trim() || '415-592-6924';
+  const sig = `${name}\n${title}, CivilGrid${email ? '\n' + email : ''}\n${phone} | www.civilgrid.com`;
+  return { name, title, email, phone, sig };
+}
+
+function cancelResearch(idx) {
+  isResearching = false;
+  if (agencies[idx]) agencies[idx].status = 'error';
+  results[idx] = { error: 'Cancelled by user' };
+  renderAgencyList();
+  renderContent();
+}
+
+// ─── CSV HANDLING ─────────────────────────────────────────────────────────────
+function handleCSVDrop(event) {
+  const file = event.dataTransfer.files[0];
+  if (!file || !file.name.endsWith('.csv')) {
+    alert('Please drop a .csv file.');
+    return;
+  }
+  processCSVFile(file);
+}
+
+function handleCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  processCSVFile(file);
+}
+
+function processCSVFile(file) {
+  document.getElementById('csv-filename').innerHTML = `<div class="csv-file-name">📄 ${file.name}</div>`;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    agencies = [];
+    lines.forEach((line, i) => {
+      if (i === 0 && line.toLowerCase().includes('agency')) return; // skip header
+      const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+      if (parts[0]) {
+        agencies.push({
+          name: parts[0],
+          county: parts[1] || '',
+          state: parts[2] || 'NY',
+          status: 'pending'
+        });
+      }
+    });
+    renderAgencyList();
+    document.getElementById('btn-research-all').disabled = agencies.length === 0;
+    document.getElementById('btn-research-all').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+  reader.readAsText(file);
+}
+
+function clearAgencies() {
+  agencies = [];
+  results = {};
+  activeAgency = null;
+  renderAgencyList();
+  document.getElementById('btn-research-all').disabled = true;
+  document.getElementById('csv-filename').innerHTML = '';
+  showEmptyState();
+}
+
+function researchSingle() {
+  const muni = document.getElementById('inp-muni').value.trim();
+  const county = document.getElementById('inp-county').value.trim();
+  const state = document.getElementById('inp-state').value.trim() || 'NY';
+  if (!muni) return;
+
+  // Check if already in list
+  const existing = agencies.findIndex(a => a.name.toLowerCase() === muni.toLowerCase());
+  if (existing >= 0) {
+    runResearch(existing);
+    return;
+  }
+
+  agencies.unshift({ name: muni, county, state, status: 'pending' });
+  renderAgencyList();
+  runResearch(0);
+}
+
+// ─── RENDER AGENCY LIST ───────────────────────────────────────────────────────
+function renderAgencyList() {
+  const list = document.getElementById('agency-list');
+  document.getElementById('agency-count').textContent = `${agencies.length} agenc${agencies.length === 1 ? 'y' : 'ies'}`;
+  if (agencies.length === 0) {
+    list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-dimmer); font-size:11px;">Add an agency above or upload a CSV</div>';
+    return;
+  }
+  list.innerHTML = agencies.map((a, i) => {
+    const r = results[i];
+    const hasTags = r && (r.water?.layers?.length || r.storm?.layers?.length || r.sewer?.layers?.length);
+    return `
+      <div class="agency-item ${activeAgency === i ? 'active' : ''} ${a.status}" onclick="selectAgency(${i})">
+        <span class="agency-num">${i + 1}</span>
+        <span class="agency-name">${a.name}</span>
+        ${hasTags ? `<div class="agency-tags">
+          ${r.water?.layers?.length ? '<span class="tag tag-w">W</span>' : ''}
+          ${r.storm?.layers?.length ? '<span class="tag tag-s">S</span>' : ''}
+          ${r.sewer?.layers?.length ? '<span class="tag tag-e">E</span>' : ''}
+        </div>` : ''}
+        <div class="agency-status ${a.status}"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectAgency(i) {
+  activeAgency = i;
+  renderAgencyList();
+  renderContent();
+}
+
+// ─── RESEARCH ─────────────────────────────────────────────────────────────────
+async function researchAll() {
+  if (isResearching) return;
+  const pending = agencies.filter((a, i) => a.status !== 'done');
+  const total = pending.length;
+  let done = 0;
+  for (let i = 0; i < agencies.length; i++) {
+    if (agencies[i].status === 'done') continue;
+    await runResearch(i);
+    done++;
+    if (done < total) {
+      // Wait 15 seconds between requests to avoid rate limits
+      for (let s = 15; s > 0; s--) {
+        document.getElementById('agency-count').textContent =
+          `${agencies.length} agencies · next in ${s}s`;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      document.getElementById('agency-count').textContent = `${agencies.length} agencies`;
+    }
+  }
+}
+
+async function runResearch(idx) {
+  if (isResearching) return;
+
+  // Check API key first
+  const apiKey = getApiKey();
+  if (!apiKey.startsWith('sk-ant-') || apiKey.length < 20) {
+    alert('Please enter a valid Anthropic API key (starts with sk-ant-) before researching.');
+    return;
+  }
+
+  isResearching = true;
+  const a = agencies[idx];
+  agencies[idx].status = 'researching';
+  activeAgency = idx;
+  renderAgencyList();
+  showResearchingState(idx);
+
+  try {
+    const result = await callClaudeResearch(a.name, a.county, a.state, idx);
+    results[idx] = result;
+    agencies[idx].status = 'done';
+  } catch (err) {
+    agencies[idx].status = 'error';
+    const msg = err.name === 'AbortError' ? 'Request timed out after 90 seconds. Try again.' : err.message;
+    results[idx] = { error: msg };
+  }
+
+  isResearching = false;
+  renderAgencyList();
+  updateExportButton();
+  if (activeAgency === idx) renderContent();
+}
+
+// ─── CLAUDE API CALL ──────────────────────────────────────────────────────────
+async function callClaudeResearch(muni, county, state, idx) {
+  const logEl = document.getElementById('research-log');
+
+  function log(text, type = '') {
+    if (!logEl) return;
+    const time = new Date().toLocaleTimeString('en-US', {hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    logEl.innerHTML += `<div class="log-line ${type}"><span class="log-time">${time}</span><span class="log-text">${text}</span></div>`;
+    logEl.scrollTop = logEl.scrollHeight;
+    updateStepPip(text);
+  }
+
+  function updateStepPip(text) {
+    const stepMap = {
+      'Step 1': 0, 'Step 2': 1, 'Step 3': 2, 'Step 4': 3,
+      'Step 5': 4, 'Step 6': 5, 'Step 7': 6, 'Step 8': 7
+    };
+    for (const [key, i] of Object.entries(stepMap)) {
+      if (text.includes(key)) {
+        document.querySelectorAll('.step-pip').forEach((p, pi) => {
+          if (pi < i) p.className = 'step-pip done';
+          else if (pi === i) p.className = 'step-pip active';
+        });
+      }
+    }
+  }
+
+  log(`Starting deep GIS research for ${muni}, ${county} County, ${state}...`);
+
+  const sender = getSenderProfile();
+
+  const systemPrompt = `You are a GIS infrastructure data specialist with deep knowledge of municipal ArcGIS portals, REST services, and open data hubs across the US. Research the given municipality using your knowledge and return ONLY a valid JSON object — no markdown, no code fences, no preamble, no explanation.
+
+You MUST always populate the JSON with your best knowledge. Never return empty arrays if you have any relevant information. Make your best attempt at every field.
+
+JSON structure (return exactly this format):
+{"municipality":"","county":"","state":"","portalUrl":null,"portalType":"ArcGIS Hub/Open Data/REST Service/None","dataType":"REST Service/SHP/GDB/PDF Only/None","hasRecycledWater":false,"water":{"layers":[{"name":"","layerId":"0","geometry":"Point/Line/Polygon","url":"","features":[],"is403":false}],"gaps":[],"pdfMaps":[]},"storm":{"layers":[],"gaps":[],"pdfMaps":[]},"sewer":{"layers":[],"gaps":[],"pdfMaps":[]},"recycledWater":{"layers":[],"gaps":[],"pdfMaps":[]},"contacts":[{"tier":1,"name":"","role":"GIS Administrator","email":"","phone":null},{"tier":2,"name":"","role":"Water/Sewer Superintendent","email":"","phone":null},{"tier":3,"name":"","role":"Town Clerk","email":"","phone":null},{"tier":4,"name":null,"role":"General Contact","email":"","phone":null}],"suggestedStatus":"Data Found, Loading in Progress/Data Not Found, Outreach in Progress/Completed, No GIS Data","emailGIS":"","emailUtility":"","researchNotes":""}
+
+RESEARCH APPROACH:
+1. Check if the municipality or county likely has an ArcGIS portal. Common patterns:
+   - https://[county]gis.com/arcgis/rest/services/
+   - https://gis.[county].gov/arcgis/rest/services/
+   - https://[municipality].maps.arcgis.com
+   - https://[county].hub.arcgis.com
+   - https://services.arcgis.com/[orgID]/arcgis/rest/services/
+2. For NY municipalities specifically: check if the county has a known GIS portal (many NY counties have public ArcGIS REST services)
+3. Look for water, sewer, stormwater layers using keywords: Water, Sewer, Storm, SS, SW, Utility, Infrastructure, Mains, Lines
+4. Find contacts: GIS Administrator (Tier 1), Water/Sewer Superintendent (Tier 2), Town/City Clerk (Tier 3), general contact (Tier 4)
+5. Construct likely email addresses based on standard government email patterns (firstname.lastname@[county/municipality].gov or similar)
+
+FEATURES TO FIND:
+WATER: Points, Lines, Valves, Hydrants, Meters, Mains, Manholes, Backflow Preventers, Fittings
+STORM: Lines, Points, Manholes, Drains, Inlets, Outfalls, Channels
+SEWER: Lines, Points, Manholes, Lift Stations, Force Mains, Gravity Mains, Clean Outs
+
+EMAILS (concise, under 80 words):
+emailGIS: To GIS team. Subject "GIS Data Request — ${muni}". Introduce CivilGrid, reference found layers or ask if they have utility GIS data. Sign: ${sender.sig}
+emailUtility: To utility supervisor. Subject "GIS Data Request — ${muni}". Ask for water/sewer/stormwater records in any format. Sign: ${sender.sig}
+
+suggestedStatus: "Data Found, Loading in Progress" if layers found; "Data Not Found, Outreach in Progress" if contact found but no data; "Completed, No GIS Data" if neither.
+
+IMPORTANT: Return ONLY the JSON object. Start your response with { and end with }. No other text.`;
+
+  const userMsg = `Research GIS utility infrastructure data for: ${muni}, ${county} County, ${state}. Follow all 8 research steps and return the complete JSON.`;
+
+  log('Calling AI research engine (this may take 30-90 seconds)...');
+
+  // 90-second timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    signal: controller.signal,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+
+  if (!response.ok) {
+    clearTimeout(timeoutId);
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(`API error ${response.status}: ${errBody?.error?.message || response.statusText}`);
+  }
+  clearTimeout(timeoutId);
+
+  const data = await response.json();
+  log(`Response received. Stop: ${data.stop_reason}, Blocks: ${data.content?.length || 0}`);
+
+  let rawText = '';
+  for (const block of (data.content || [])) {
+    if (block.type === 'text') rawText += block.text;
+  }
+
+  log(`Response text: ${rawText.length} chars`);
+  log('Parsing results...', 'success');
+
+  let parsed;
+  try {
+    const clean = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const start = clean.indexOf('{');
+    const end = clean.lastIndexOf('}');
+    if (start === -1 || end === -1) throw new Error('No JSON found in response');
+    parsed = JSON.parse(clean.slice(start, end + 1));
+    log(`Parsed OK: ${Object.keys(parsed).length} fields`, 'success');
+  } catch (e) {
+    log(`Parse error: ${e.message}`, 'warn');
+    log(`Raw preview: ${rawText.substring(0, 300)}`, 'warn');
+    parsed = {
+      municipality: muni, county: county, state: state,
+      portalUrl: null, portalType: 'None',
+      water: { layers: [], gaps: [] },
+      storm: { layers: [], gaps: [] },
+      sewer: { layers: [], gaps: [] },
+      contacts: [], emailGIS: '', emailUtility: '',
+      researchNotes: `Parse error: ${e.message}. Raw (${rawText.length} chars): ${rawText.substring(0, 500)}`
+    };
+  }
+
+  // Count findings
+  const totalLayers = (parsed.water?.layers?.length || 0) + (parsed.storm?.layers?.length || 0) + (parsed.sewer?.layers?.length || 0);
+  log(`Found ${totalLayers} confirmed layers across water/storm/sewer`, totalLayers > 0 ? 'success' : 'warn');
+
+  // Mark all steps done
+  document.querySelectorAll('.step-pip').forEach(p => p.className = 'step-pip done');
+
+  return parsed;
+}
+
+// ─── RENDER STATES ────────────────────────────────────────────────────────────
+function showEmptyState() {
+  document.getElementById('main-content').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">🛰</div>
+      <div class="empty-title">No Agency Selected</div>
+      <div class="empty-sub">Enter a municipality above or upload a CSV, then click Research to run the full 8-step GIS intelligence workflow.</div>
+    </div>`;
+}
+
+function showResearchingState(idx) {
+  const a = agencies[idx];
+  document.getElementById('main-content').innerHTML = `
+    <div class="agency-header-card">
+      <div>
+        <div class="agency-header-name">${a.name}</div>
+        <div class="agency-header-meta">${a.county ? a.county + ' County · ' : ''}${a.state}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+        <div class="spinner"></div>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--accent2);">RESEARCHING</span>
+        <button onclick="cancelResearch(${idx})" style="margin-left:8px;background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);color:var(--error);font-family:var(--font-mono);font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;">✕ Cancel</button>
+      </div>
+    </div>
+    <div class="step-indicators">
+      ${['1·Municipal GIS','2·County REST','3·ArcGIS Online','4·Hub Sites','5·State Data','6·Gap Analysis','7·Contacts','8·Email Drafts'].map((s,i) => `<div class="step-pip" id="step-${i}">${s}</div>`).join('')}
+    </div>
+    <div class="progress-log" id="research-log">
+      <div class="log-line"><span class="log-text" style="color:var(--accent2);">🔍 Initializing research engine...</span></div>
+    </div>`;
+}
+
+function renderContent() {
+  const idx = activeAgency;
+  if (idx === null || !results[idx]) {
+    if (agencies[idx]?.status === 'researching') return; // already showing research state
+    showEmptyState();
+    return;
+  }
+  const r = results[idx];
+  const a = agencies[idx];
+
+  switch(activeTab) {
+    case 'overview': renderOverview(r, a, idx); break;
+    case 'gis': renderGIS(r, a); break;
+    case 'contacts': renderContacts(r, a); break;
+    case 'emails': renderEmails(r, a); break;
+  }
+}
+
+// ─── OVERVIEW TAB ─────────────────────────────────────────────────────────────
+function renderOverview(r, a, idx) {
+  const wLayers = r.water?.layers?.length || 0;
+  const sLayers = r.storm?.layers?.length || 0;
+  const eLayers = r.sewer?.layers?.length || 0;
+  const rwLayers = r.recycledWater?.layers?.length || 0;
+  const totalLayers = wLayers + sLayers + eLayers + rwLayers;
+  const wGaps = r.water?.gaps?.length || 0;
+  const sGaps = r.storm?.gaps?.length || 0;
+  const eGaps = r.sewer?.gaps?.length || 0;
+  const contacts = r.contacts || [];
+  const tier1 = contacts.find(c => c.tier === 1);
+  const allPdfs = [...(r.water?.pdfMaps||[]), ...(r.storm?.pdfMaps||[]), ...(r.sewer?.pdfMaps||[])];
+  const all403 = [...(r.water?.layers||[]), ...(r.storm?.layers||[]), ...(r.sewer?.layers||[])].filter(l => l.is403);
+
+  const statusColors = {
+    'Data Found, Loading in Progress': 'var(--accent)',
+    'Data Not Found, Outreach in Progress': 'var(--warning)',
+    'Completed, No GIS Data': 'var(--text-dimmer)',
+    'Completed, Agency Unresponsive': 'var(--text-dimmer)',
+    'Completed, Agency Not Sharing': 'var(--error)',
+  };
+  const statusColor = statusColors[r.suggestedStatus] || 'var(--text-dim)';
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="agency-header-card">
+      <div>
+        <div class="agency-header-name">${r.municipality || a.name}</div>
+        <div class="agency-header-meta">${r.county || a.county} County · ${r.state || a.state} · ${r.portalType || 'No GIS Portal Found'}${r.dataType ? ' · ' + r.dataType : ''}</div>
+        ${r.portalUrl ? `<a href="${r.portalUrl}" target="_blank" style="font-family:var(--font-mono);font-size:10px;color:var(--accent2);">${r.portalUrl}</a>` : ''}
+        ${r.suggestedStatus ? `<div style="margin-top:6px;font-family:var(--font-mono);font-size:10px;color:${statusColor}">▸ ${r.suggestedStatus}</div>` : ''}
+      </div>
+      <div class="agency-score">
+        <div class="score-num">${totalLayers}</div>
+        <div class="score-label">Layers Found</div>
+      </div>
+    </div>
+
+    <!-- UTILITY SUMMARY CARDS -->
+    <div style="display:grid;grid-template-columns:${r.hasRecycledWater ? '1fr 1fr 1fr 1fr' : '1fr 1fr 1fr'};gap:10px;margin-bottom:16px;">
+      ${[
+        {label:'WATER', color:'water', layers: wLayers, gaps: wGaps},
+        {label:'STORM', color:'storm', layers: sLayers, gaps: sGaps},
+        {label:'SEWER', color:'sewer', layers: eLayers, gaps: eGaps},
+        ...(r.hasRecycledWater ? [{label:'RECYCLED', color:'water', layers: rwLayers, gaps: r.recycledWater?.gaps?.length||0}] : [])
+      ].map(u => `
+        <div class="utility-section" style="margin:0">
+          <div class="utility-header" style="padding:10px 12px">
+            <div class="utility-icon ${u.color}">${u.label[0]}</div>
+            <div><div class="utility-title ${u.color}" style="font-size:10px">${u.label}</div></div>
+          </div>
+          <div style="padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:11px;color:var(--text-dim)">Layers</span>
+              <span style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">${u.layers}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-size:11px;color:var(--text-dim)">Gaps</span>
+              <span style="font-family:var(--font-mono);font-size:12px;color:${u.gaps > 0 ? 'var(--error)' : 'var(--accent)'}">${u.gaps}</span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- FLAGS ROW -->
+    ${(all403.length > 0 || allPdfs.length > 0) ? `
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      ${all403.length > 0 ? `
+        <div style="background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.3);border-radius:8px;padding:10px 14px;flex:1">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--warning);letter-spacing:0.1em;margin-bottom:6px;">⚠ 403 / PROTECTED LAYERS</div>
+          ${all403.map(l => `<div style="font-size:11px;color:var(--text-dim);margin-bottom:3px;">${l.name} — <a href="${l.url}" target="_blank" style="font-family:var(--font-mono);font-size:9px;color:var(--accent2);">${l.url}</a></div>`).join('')}
+          <div style="font-size:10px;color:var(--text-dimmer);margin-top:4px;">Try /?f=json or change layer number. Can also open in ArcGIS Pro via Add Data from Path.</div>
+        </div>` : ''}
+      ${allPdfs.length > 0 ? `
+        <div style="background:rgba(124,92,252,0.08);border:1px solid rgba(124,92,252,0.3);border-radius:8px;padding:10px 14px;flex:1">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--storm);letter-spacing:0.1em;margin-bottom:6px;">📄 PDF MAPS → DIGITIZATION</div>
+          ${allPdfs.map(p => `<div style="margin-bottom:3px;"><a href="${p}" target="_blank" style="font-family:var(--font-mono);font-size:9px;color:var(--accent2);">${p}</a></div>`).join('')}
+        </div>` : ''}
+    </div>` : ''}
+
+    <!-- BEST CONTACT -->
+    <div style="margin-bottom:16px">
+      <div class="panel-label" style="margin-bottom:8px">TOP CONTACT</div>
+      ${tier1 ? `
+        <div class="contact-card" style="display:flex;align-items:center;gap:12px">
+          <div>
+            <div class="contact-tier t1">Tier 1 · GIS</div>
+            <div class="contact-name">${tier1.name || 'Unknown'}</div>
+            <div class="contact-role">${tier1.role}</div>
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            ${tier1.email ? `<span class="contact-email">${tier1.email}</span>` : ''}
+            ${tier1.phone ? `<span class="contact-phone">${tier1.phone}</span>` : ''}
+          </div>
+        </div>` : `<div class="no-data">No Tier 1 GIS contact found — see Contacts tab for alternatives</div>`}
+    </div>
+
+    <!-- RESEARCH NOTES -->
+    ${r.researchNotes ? `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px">
+      <div class="panel-label" style="margin-bottom:6px">📋 Research Notes</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${r.researchNotes}</div>
+    </div>` : ''}
+
+    <!-- QUICK ACTIONS -->
+    <div class="panel-label" style="margin-bottom:8px">QUICK ACTIONS</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="switchTab('gis')">📡 View GIS Layers</button>
+      <button class="btn btn-ghost" onclick="switchTab('contacts')">👤 View Contacts</button>
+      <button class="btn btn-ghost" onclick="switchTab('emails')">✉ Email Templates</button>
+      ${tier1?.email ? `<button class="btn btn-primary" style="width:auto;padding:9px 16px" onclick="quickSend('${tier1.email}', ${idx})">⚡ Send GIS Email</button>` : ''}
+    </div>
+  `;
+}
+
+// ─── GIS LAYERS TAB ───────────────────────────────────────────────────────────
+function renderGIS(r, a) {
+  const sections = [
+    { key: 'water', label: 'WATER', color: 'water' },
+    { key: 'storm', label: 'STORM', color: 'storm' },
+    { key: 'sewer', label: 'SEWER', color: 'sewer' },
+    ...(r.hasRecycledWater ? [{ key: 'recycledWater', label: 'RECYCLED WATER', color: 'water' }] : [])
+  ];
+
+  document.getElementById('main-content').innerHTML = sections.map(s => {
+    const data = r[s.key] || { layers: [], gaps: [], pdfMaps: [] };
+    return `
+      <div class="utility-section">
+        <div class="utility-header">
+          <div class="utility-icon ${s.color}">${s.label[0]}</div>
+          <div class="utility-title ${s.color}">${s.label} INFRASTRUCTURE</div>
+          <div class="utility-count">${data.layers?.length || 0} layers · ${data.gaps?.length || 0} gaps</div>
+        </div>
+        <div class="utility-body">
+          ${data.layers?.length ? `
+            <table class="layer-table">
+              <thead><tr>
+                <th>Layer Name</th><th>ID</th><th>Geometry</th><th>REST URL</th>
+              </tr></thead>
+              <tbody>
+                ${data.layers.map(l => `
+                  <tr style="${l.is403 ? 'opacity:0.7;background:rgba(255,179,71,0.05)' : ''}">
+                    <td>
+                      <div class="layer-name">${l.name}${l.is403 ? ' <span style="font-family:var(--font-mono);font-size:8px;color:var(--warning);border:1px solid rgba(255,179,71,0.4);padding:1px 4px;border-radius:3px;margin-left:4px;">403</span>' : ''}</div>
+                      ${l.features?.length ? `<div style="font-size:10px;color:var(--text-dimmer);margin-top:2px">${l.features.slice(0,4).join(', ')}${l.features.length > 4 ? '...' : ''}</div>` : ''}
+                    </td>
+                    <td><span class="layer-id">${l.layerId ?? '—'}</span></td>
+                    <td><span class="layer-geom">${l.geometry || '—'}</span></td>
+                    <td><div class="layer-url">${l.url ? `<a href="${l.url}" target="_blank">${l.url}</a>` : '—'}</div></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : `<div class="no-data">No ${s.label.toLowerCase()} layers found in public REST services</div>`}
+
+          ${data.pdfMaps?.length ? `
+            <div style="margin-top:10px;padding:8px 10px;background:rgba(124,92,252,0.06);border:1px solid rgba(124,92,252,0.2);border-radius:6px;">
+              <div style="font-family:var(--font-mono);font-size:9px;color:var(--storm);margin-bottom:5px;letter-spacing:0.08em;">📄 PDF MAPS — SEND TO #DIGITIZATION</div>
+              ${data.pdfMaps.map(p => `<div style="margin-bottom:3px;"><a href="${p}" target="_blank" style="font-family:var(--font-mono);font-size:9px;color:var(--accent2);">${p}</a></div>`).join('')}
+            </div>` : ''}
+
+          ${data.gaps?.length ? `
+            <div class="gaps-section">
+              <div class="gaps-label">⚠ Feature Gaps (not found in public data)</div>
+              <div class="gaps-list">${data.gaps.map(g => `<span class="gap-badge">${g}</span>`).join('')}</div>
+            </div>
+          ` : `<div style="margin-top:8px"><span class="found-badge">✓ All features accounted for</span></div>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── CONTACTS TAB ─────────────────────────────────────────────────────────────
+function renderContacts(r, a) {
+  const contacts = r.contacts || [];
+  const tierMap = { 1: {label:'Tier 1 · GIS Admin', cls:'t1'}, 2: {label:'Tier 2 · Utility Sup.', cls:'t2'}, 3: {label:'Tier 3 · Town Clerk', cls:'t3'}, 4: {label:'Tier 4 · General', cls:'t4'} };
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="panel-label" style="margin-bottom:12px">CONTACT DIRECTORY — ${r.municipality || a.name}</div>
+    ${contacts.length ? `
+      <div class="contacts-grid">
+        ${contacts.map(c => `
+          <div class="contact-card">
+            <div class="contact-tier ${tierMap[c.tier]?.cls || ''}">${tierMap[c.tier]?.label || 'Contact'}</div>
+            <div class="contact-name">${c.name || 'Unknown'}</div>
+            <div class="contact-role">${c.role || '—'}</div>
+            ${c.email ? `<a class="contact-email" href="mailto:${c.email}">${c.email}</a>` : ''}
+            ${c.phone ? `<div class="contact-phone">${c.phone}${c.ext ? ' ext. ' + c.ext : ''}</div>` : ''}
+            ${!c.email && !c.phone ? `<div class="contact-none">No direct contact found</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    ` : `<div class="no-data">No contacts found. Try the Emails tab for outreach templates.</div>`}
+  `;
+}
+
+// ─── EMAILS TAB ───────────────────────────────────────────────────────────────
+function renderEmails(r, a) {
+  document.getElementById('main-content').innerHTML = `
+    <div class="panel-label" style="margin-bottom:12px">EMAIL TEMPLATES — ${r.municipality || a.name}</div>
+
+    ${r.emailGIS ? `
+      <div class="email-card">
+        <div class="email-header">
+          <div>
+            <div class="email-type">Template 1</div>
+            <div class="email-audience">→ GIS Team / Technical Audience</div>
+          </div>
+          <button class="copy-btn" onclick="copyText('email-gis-body')">Copy</button>
+        </div>
+        <div class="email-body" id="email-gis-body">${r.emailGIS}</div>
+      </div>
+    ` : ''}
+
+    ${r.emailUtility ? `
+      <div class="email-card">
+        <div class="email-header">
+          <div>
+            <div class="email-type">Template 2</div>
+            <div class="email-audience">→ Utility Supervisor / Non-technical</div>
+          </div>
+          <button class="copy-btn" onclick="copyText('email-util-body')">Copy</button>
+        </div>
+        <div class="email-body" id="email-util-body">${r.emailUtility}</div>
+      </div>
+    ` : '<div class="no-data">Email templates not generated. Run research first.</div>'}
+  `;
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'send') {
+    renderSendTab();
+    return;
+  }
+  if (activeAgency !== null && results[activeAgency]) renderContent();
+}
+
+function copyText(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = el.parentElement.querySelector('.copy-btn');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); }
+  });
+}
+
+// ─── CSV EXPORT ───────────────────────────────────────────────────────────────
+function updateExportButton() {
+  const hasResults = Object.keys(results).some(k => results[k] && !results[k].error);
+  document.getElementById('btn-export').disabled = !hasResults;
+}
+
+function escCsv(val) {
+  if (val == null) return '';
+  const s = String(val);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function exportCSV() {
+  const rows = [];
+
+  // Header row
+  rows.push([
+    'Agency','County','State','Status',
+    'Portal URL','Portal Type',
+    // Water
+    'Water Layers Found','Water Layer Names','Water Layer URLs','Water Gaps',
+    // Storm
+    'Storm Layers Found','Storm Layer Names','Storm Layer URLs','Storm Gaps',
+    // Sewer
+    'Sewer Layers Found','Sewer Layer Names','Sewer Layer URLs','Sewer Gaps',
+    // Contacts
+    'Tier1 Name','Tier1 Role','Tier1 Email','Tier1 Phone',
+    'Tier2 Name','Tier2 Role','Tier2 Email','Tier2 Phone',
+    'Tier3 Name','Tier3 Role','Tier3 Email','Tier3 Phone',
+    // Notes
+    'Research Notes',
+    // Emails
+    'Email GIS Template','Email Utility Template'
+  ].map(escCsv).join(','));
+
+  agencies.forEach((a, i) => {
+    const r = results[i];
+    if (!r) {
+      rows.push([a.name, a.county, a.state, a.status].map(escCsv).join(','));
+      return;
+    }
+    if (r.error) {
+      rows.push([a.name, a.county, a.state, 'error', '', '', '', '', '', r.error].map(escCsv).join(','));
+      return;
+    }
+
+    const layerNames = (util) => (r[util]?.layers || []).map(l => l.name).join(' | ');
+    const layerUrls  = (util) => (r[util]?.layers || []).map(l => l.url || '').join(' | ');
+    const gaps       = (util) => (r[util]?.gaps || []).join(' | ');
+    const contact    = (tier) => (r.contacts || []).find(c => c.tier === tier) || {};
+
+    const c1 = contact(1), c2 = contact(2), c3 = contact(3);
+
+    rows.push([
+      r.municipality || a.name, r.county || a.county, r.state || a.state, 'done',
+      r.portalUrl || '', r.portalType || '',
+      r.water?.layers?.length || 0, layerNames('water'), layerUrls('water'), gaps('water'),
+      r.storm?.layers?.length || 0, layerNames('storm'), layerUrls('storm'), gaps('storm'),
+      r.sewer?.layers?.length || 0, layerNames('sewer'), layerUrls('sewer'), gaps('sewer'),
+      c1.name||'', c1.role||'', c1.email||'', c1.phone||'',
+      c2.name||'', c2.role||'', c2.email||'', c2.phone||'',
+      c3.name||'', c3.role||'', c3.email||'', c3.phone||'',
+      r.researchNotes || '',
+      r.emailGIS || '', r.emailUtility || ''
+    ].map(escCsv).join(','));
+  });
+
+  const csv = rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const dlAnchor = document.createElement('a');
+  dlAnchor.href = url;
+  const date = new Date().toISOString().slice(0,10);
+  dlAnchor.download = `civilgrid_gis_research_${date}.csv`;
+  document.body.appendChild(dlAnchor);
+  dlAnchor.click();
+  document.body.removeChild(dlAnchor);
+  URL.revokeObjectURL(url);
+}
+
+async function quickSend(email, idx) {
+  const r = results[idx];
+  if (!r?.emailGIS) return;
+  alert(`This would open Gmail to send to: ${email}\n\nUse the "⚡ Send Outreach" tab after connecting Gmail.`);
+}
+
+// Init on DOM ready - retry if GSI not loaded yet
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initGoogleAuth, 1000);
+});
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
