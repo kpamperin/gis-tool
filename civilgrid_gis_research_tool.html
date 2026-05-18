@@ -1113,6 +1113,19 @@ function getSenderProfile() {
   return { name, title, email, phone, sig };
 }
 
+function markNoGisData(idx) {
+  if (!results[idx]) return;
+  results[idx].water = { layers: [], gaps: [] };
+  results[idx].storm = { layers: [], gaps: [] };
+  results[idx].sewer = { layers: [], gaps: [] };
+  results[idx].recycledWater = { layers: [], gaps: [] };
+  results[idx].suggestedStatus = 'Data Not Found, Outreach in Progress';
+  results[idx].researchNotes = (results[idx].researchNotes || '') + ' [Manually marked as No GIS Data]';
+  renderContent();
+  renderAgencyList();
+  alert('Marked as No GIS Data — this agency will now appear in the Send Outreach tab.');
+}
+
 function cancelResearch(idx) {
   isResearching = false;
   if (agencies[idx]) agencies[idx].status = 'error';
@@ -1578,6 +1591,11 @@ function renderOverview(r, a, idx) {
       <button class="btn btn-ghost" onclick="switchTab('emails')">✉ Email Templates</button>
       ${tier1?.email ? `<button class="btn btn-primary" style="width:auto;padding:9px 16px" onclick="quickSend('${tier1.email}', ${idx})">⚡ Send GIS Email</button>` : ''}
     </div>
+    <div style="margin-top:10px">
+      <button onclick="markNoGisData(${idx})" style="width:100%;background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.25);color:var(--error);font-family:var(--font-mono);font-size:10px;padding:8px;border-radius:6px;cursor:pointer;letter-spacing:0.05em;">
+        ✕ Mark as No GIS Data — Add to Send Outreach Queue
+      </button>
+    </div>
   `;
 }
 
@@ -1603,7 +1621,7 @@ function renderGIS(r, a) {
           ${data.layers?.length ? `
             <table class="layer-table">
               <thead><tr>
-                <th>Layer Name</th><th>ID</th><th>Geometry</th><th>REST URL</th>
+                <th>Layer Name</th><th>ID</th><th>Geometry</th><th>REST URL</th><th>Preview</th>
               </tr></thead>
               <tbody>
                 ${data.layers.map(l => `
@@ -1615,6 +1633,10 @@ function renderGIS(r, a) {
                     <td><span class="layer-id">${l.layerId ?? '—'}</span></td>
                     <td><span class="layer-geom">${l.geometry || '—'}</span></td>
                     <td><div class="layer-url">${l.url ? `<a href="${l.url}" target="_blank">${l.url}</a>` : '—'}</div></td>
+                    <td>${l.url ? `<a href="https://www.arcgis.com/home/webmap/viewer.html?url=${encodeURIComponent(l.url)}&source=sd" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,121,193,0.15);border:1px solid rgba(0,121,193,0.4);color:#4db8ff;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:4px;white-space:nowrap;text-decoration:none;" title="Open in ArcGIS Online">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                      ArcGIS
+                    </a>` : '—'}</td>
                   </tr>
                 `).join('')}
               </tbody>
