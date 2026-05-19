@@ -557,7 +557,7 @@ function renderQueue(){
         ${esc(a.muni)}${a.county?`<span style="color:#4a5568">, ${esc(a.county)}</span>`:''}
       </div>
       <span class="qbadge b-${a.status}">${bl(a.status)}</span>
-      <button class="qi-btn" onclick="scrollTo('${a.id}')" title="View">↗</button>
+      <button class="qi-btn" onclick="scrollToCard('${a.id}')" title="View">↗</button>
       ${[S.ERROR,S.NOTFOUND,S.PARTIAL].includes(a.status)?`<button class="qi-btn" onclick="requeue('${a.id}')" title="Re-research">↺</button>`:''}
       <button class="qi-btn qi-del" onclick="removeAgency('${a.id}')" title="Remove">×</button>
     </div>`).join('');
@@ -581,7 +581,7 @@ function renderResults(){
   if(!agencies.length){
     area.innerHTML=''; area.appendChild(empty); empty.style.display='flex'; return;
   }
-  if(empty.parentNode===area) area.removeChild(empty);
+  if(empty && empty.parentNode===area) area.removeChild(empty);
 
   // Keyed update — preserve open/closed state
   const existing = {};
@@ -753,7 +753,7 @@ function toggleCard(header){
   chev.classList.toggle('open',open);
 }
 
-function scrollTo(id){
+function scrollToCard(id){
   const el=document.querySelector(`[data-cid="${id}"]`);
   if(!el) return;
   el.scrollIntoView({behavior:'smooth',block:'start'});
