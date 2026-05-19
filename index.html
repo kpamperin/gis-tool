@@ -1862,7 +1862,6 @@ function parseJSON(raw) {
 async function callClaudeResearch(muni, county, state, idx) {
   const logEl = document.getElementById('research-log');
   const pipEls = document.querySelectorAll('.step-pip');
-  const S = { count: 0 }; // shared search counter
 
   function log(text, type='') {
     if (!logEl) return;
@@ -1871,6 +1870,145 @@ async function callClaudeResearch(muni, county, state, idx) {
     logEl.scrollTop = logEl.scrollHeight;
   }
   function pip(i, st) { if (pipEls[i]) pipEls[i].className = 'step-pip ' + st; }
+
+  const sender = getSenderProfile();
+  const st = state || 'NY';
+  const countyServers = lookupCountyServers(county, st);
+  const countyKnowledge = getCountyKnowledge(county, st);
+
+  log(`🚀 Researching ${muni}, ${county} County, ${st}...`);
+  pip(0,'active');
+
+  // Quick parallel probes — fire and forget, don't block
+  const urlsToProbe = ARCGIS_URL_PATTERNS(county, st);
+  const agoSearchUrl = `https://www.arcgis.com/sharing/rest/search?q=${encodeURIComponent(`"${county}" ${st} water OR sewer OR stormwater type:"Feature Service"`)}&num=20&f=json`;
+
+  const [probeResults, agoResult] = await Promise.all([
+    Promise.allSettled(urlsToProbe.map(u => probeUrl(u, 2000))),
+    probeUrl(agoSearchUrl, 4000)
+  ]);
+
+  const foundEndpoints = [];
+  probeResults.forEach((r, i) => {
+    if (r.status==='fulfilled' && r.value) {
+      foundEndpoints.push({ url: urlsToProbe[i], snippet: r.value.substring(0,500) });
+      log(`  ✓ Live endpoint: ${urlsToProbe[i].replace('?f=pjson','').substring(0,60)}`, 'success');
+    }
+  });
+
+  pip(0,'done'); pip(1,'active');
+  log(`  Probed ${urlsToProbe.length} endpoints · ${foundEndpoints.length} responded`);
+
+  // Build context block for Claude
+  const contextLines = [
+    `AGENCY: ${muni}, ${county} County, ${st.toUpperCase()}`,
+    countyKnowledge ? `⭐ KNOWN COUNTY GIS SERVER: ${countyKnowledge}` : '',
+    countyServers.length > 0 ? `COUNTY SERVER URL: ${countyServers.join(', ')}` : '',
+    foundEndpoints.length > 0
+      ? `LIVE ENDPOINTS FOUND:\n${foundEndpoints.map(e=>`  ${e.url}\n  ${e.snippet}`).join('\n---\n')}`
+      : 'No self-hosted endpoints responded (likely CORS blocked)',
+    agoResult ? `ARCGIS ONLINE SEARCH:\n${agoResult.substring(0,1500)}` : '',
+  ].filter(Boolean).join('\n\n');
+
+  pip(1,'done'); pip(2,'active');
+  log('🔍 Calling Claude with web search...');
+
+  const systemPrompt = `You are a GIS infrastructure data specialist for CivilGrid. Research the given municipality and return structured JSON.
+
+SEARCH STRATEGY — do ALL of these in order:
+1. If a KNOWN COUNTY GIS SERVER is listed, search for it immediately: fetch its services and find water/sewer/stormwater layers for the specific municipality
+2. Search ArcGIS Online: "${muni} ${county} water sewer stormwater arcgis"
+3. Search: "${county} County ${st} GIS arcgis rest services utility"  
+4. Search: "${muni} ${st} water sewer infrastructure GIS layers"
+5. Search for contacts: "${muni} ${st} town clerk water superintendent email"
+6. Search state clearinghouse: "${st} GIS ${county} utility water sewer"
+
+Return ONLY valid JSON starting with { ending with }:
+{"municipality":"","county":"","state":"","portalUrl":null,"portalType":"ArcGIS Hub/Open Data/REST Service/None","dataType":"REST Service/SHP/GDB/PDF Only/None","hasRecycledWater":false,"water":{"layers":[{"name":"","layerId":"0","geometry":"Point/Line/Polygon","url":"","features":[],"is403":false}],"gaps":[],"pdfMaps":[]},"storm":{"layers":[],"gaps":[],"pdfMaps":[]},"sewer":{"layers":[],"gaps":[],"pdfMaps":[]},"recycledWater":{"layers":[],"gaps":[],"pdfMaps":[]},"contacts":[{"tier":1,"name":"","role":"GIS Administrator","email":"","phone":null},{"tier":2,"name":"","role":"Water/Sewer Superintendent","email":"","phone":null},{"tier":3,"name":"","role":"Town Clerk","email":"","phone":null},{"tier":4,"name":null,"role":"General Contact","email":"","phone":null}],"suggestedStatus":"Data Found, Loading in Progress/Data Not Found, Outreach in Progress/Completed, No GIS Data","emailGIS":"","emailUtility":"","researchNotes":""}
+
+Layer URL examples:
+- Self-hosted: https://gisp.geneseeny.gov/arcgis/rest/services/GC_Public/Utilities/FeatureServer/0
+- AGO-hosted: https://services.arcgis.com/{orgId}/ArcGIS/rest/services/{Name}/FeatureServer/{id}
+
+Contacts: real confirmed only. 
+emailGIS + emailUtility: under 80 words each, sign with: ${sender.sig}
+suggestedStatus: "Data Found, Loading in Progress" if layers found; "Data Not Found, Outreach in Progress" if contact but no layers; "Completed, No GIS Data" if neither.
+researchNotes: list what you searched and found.`;
+
+  const userMsg = `${contextLines}\n\nResearch this agency. Run all 6 search steps. Return complete JSON.`;
+
+  let searchCount = 0;
+  let msgs = [{ role:'user', content: userMsg }];
+  let finalText = '';
+
+  for (let turn = 0; turn < 8; turn++) {
+    pip(Math.min(2 + turn, 7), 'active');
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': getApiKey(),
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens: 8000,
+        system: systemPrompt,
+        tools:[{ type:'web_search_20250305', name:'web_search' }],
+        messages: msgs
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(()=>({}));
+      throw new Error(`API ${resp.status}: ${err?.error?.message || resp.statusText}`);
+    }
+
+    const data = await resp.json();
+    const content = data.content || [];
+
+    for (const b of content) {
+      if (b.type==='tool_use' && b.name==='web_search') {
+        searchCount++;
+        log(`🔍 Search #${searchCount}: "${b.input?.query||''}"`, '');
+      }
+      if (b.type==='text') finalText += b.text;
+    }
+
+    msgs.push({ role:'assistant', content });
+
+    if (data.stop_reason === 'end_turn') break;
+    if (data.stop_reason === 'tool_use') {
+      msgs.push({ role:'user', content: content.filter(b=>b.type==='tool_use').map(b=>({ type:'tool_result', tool_use_id:b.id, content:[] })) });
+      continue;
+    }
+    break;
+  }
+
+  pip(5,'done'); pip(6,'done');
+  log(`  ${searchCount} searches performed`);
+  log('📋 Parsing results...', 'success');
+
+  let parsed;
+  try {
+    parsed = parseJSON(finalText);
+    log(`✅ Done: ${(parsed.water?.layers?.length||0)+(parsed.storm?.layers?.length||0)+(parsed.sewer?.layers?.length||0)} layers found`, 'success');
+  } catch(e) {
+    log(`⚠ Parse error: ${e.message}`, 'warn');
+    parsed = {
+      municipality:muni, county, state:st,
+      portalUrl:null, portalType:'None',
+      water:{layers:[],gaps:[]}, storm:{layers:[],gaps:[]},
+      sewer:{layers:[],gaps:[]}, contacts:[],
+      emailGIS:'', emailUtility:'',
+      researchNotes:`${searchCount} searches. Parse error: ${e.message}. Raw: ${finalText.substring(0,400)}`
+    };
+  }
+
+  pip(7,'done');
+  return parsed;
+}
 
   const sender = getSenderProfile();
   const st = state || 'NY';
