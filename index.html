@@ -3,2781 +3,810 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivilGrid — GIS Agency Research</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e2e8f0;font-size:14px;min-height:100vh}
+a{color:#38bdf8;text-decoration:none}a:hover{text-decoration:underline}
+button{cursor:pointer;font-family:inherit;font-size:13px}
+input,select,textarea{font-family:inherit;font-size:13px;background:#1e2330;border:1px solid #2d3550;color:#e2e8f0;border-radius:6px;padding:8px 11px;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:#38bdf8}
+input::placeholder,textarea::placeholder{color:#4a5568}
 
-  :root {
-    --bg: #0d0f11;
-    --surface: #141618;
-    --surface2: #1a1d20;
-    --border: #2a2d31;
-    --accent: #00e5a0;
-    --accent2: #00b8ff;
-    --accent3: #ff6b35;
-    --text: #e8eaed;
-    --text-dim: #7a7f87;
-    --text-dimmer: #4a4f57;
-    --water: #00b8ff;
-    --storm: #7c5cfc;
-    --sewer: #ff6b35;
-    --success: #00e5a0;
-    --warning: #ffb347;
-    --error: #ff4d6d;
-    --font-mono: 'Space Mono', monospace;
-    --font-body: 'DM Sans', sans-serif;
-  }
+#app{display:grid;grid-template-rows:52px 1fr;min-height:100vh}
+header{background:#161b27;border-bottom:1px solid #2d3550;display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:100}
+.logo{font-size:15px;font-weight:700;color:#fff}
+.logo span{color:#38bdf8}
+.hgap{flex:1}
+.key-wrap{display:flex;align-items:center;gap:8px}
+.key-wrap label{font-size:11px;color:#64748b;white-space:nowrap}
+#apiKeyInput{width:270px;font-size:12px;font-family:'Courier New',monospace}
+.key-ok{font-size:11px;color:#22c55e;display:none}
+.key-ok.show{display:inline}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+main{display:grid;grid-template-columns:300px 1fr;overflow:hidden;height:calc(100vh - 52px)}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    font-size: 14px;
-  }
+#leftPanel{background:#161b27;border-right:1px solid #2d3550;display:flex;flex-direction:column;overflow-y:auto}
+.ps{padding:14px 16px;border-bottom:1px solid #1e2330}
+.stitle{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:3px;margin-bottom:7px}
+.field label{font-size:10px;color:#64748b;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.field input{width:100%}
 
-  /* HEADER */
-  .header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .header-logo {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-mono);
-    font-size: 12px; font-weight: 700;
-    color: #000;
-  }
-  .header-title {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .header-sub {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-  }
-  .header-badge {
-    margin-left: auto;
-    background: rgba(0,229,160,0.1);
-    border: 1px solid rgba(0,229,160,0.3);
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.05em;
-  }
+.arow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.arow input{width:100%}
+#muniInput{grid-column:1/-1}
 
-  /* MAIN LAYOUT */
-  .main { display: flex; height: calc(100vh - 57px); }
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 13px;border-radius:6px;border:none;font-weight:600;transition:all .15s;white-space:nowrap;font-size:12px}
+.btn-primary{background:#38bdf8;color:#0f172a}.btn-primary:hover{background:#7dd3fc}.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid #2d3550;color:#94a3b8}.btn-ghost:hover{border-color:#38bdf8;color:#38bdf8}
+.btn-danger{background:transparent;border:1px solid #ef4444;color:#ef4444}.btn-danger:hover{background:#ef444418}
+.btn-full{width:100%}
+.brow{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 
-  /* LEFT PANEL */
-  .left-panel {
-    width: 340px;
-    min-width: 340px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
+.drop-zone{border:2px dashed #2d3550;border-radius:8px;padding:14px;text-align:center;color:#4a5568;font-size:11px;cursor:pointer;transition:all .2s;margin-bottom:8px}
+.drop-zone:hover,.drop-zone.over{border-color:#38bdf8;color:#38bdf8;background:#38bdf808}
+.drop-zone input{display:none}
 
-  .panel-section {
-    padding: 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .panel-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-dimmer);
-    margin-bottom: 10px;
-  }
+#queueList{display:flex;flex-direction:column;gap:3px}
+.qi{background:#1e2330;border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;font-size:11px}
+.qi-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qbadge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.b-pending{background:#1e3a5f;color:#60a5fa}
+.b-running{background:#1c3a2e;color:#34d399;animation:pulse 1.5s infinite}
+.b-found{background:#14532d;color:#4ade80}
+.b-partial{background:#451a03;color:#fb923c}
+.b-notfound{background:#450a0a;color:#f87171}
+.b-error{background:#3b1a2a;color:#f472b6}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.qi-btn{background:none;border:none;color:#4a5568;font-size:14px;line-height:1;padding:1px 3px;flex-shrink:0}
+.qi-btn:hover{color:#38bdf8}
+.qi-del:hover{color:#ef4444}
 
-  /* INPUTS */
-  .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
-  .input-group { flex: 1; }
-  .input-label { font-size: 10px; color: var(--text-dim); margin-bottom: 4px; font-family: var(--font-mono); }
-  input, select, textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 13px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-  input::placeholder { color: var(--text-dimmer); }
-  select option { background: var(--surface2); }
+#batchControls{padding:12px 16px;background:#12151f;border-top:1px solid #1e2330;display:flex;flex-direction:column;gap:7px;margin-top:auto}
+.pbar{height:3px;background:#1e2330;border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:#38bdf8;border-radius:2px;transition:width .4s}
+#batchStatus{font-size:11px;color:#64748b;text-align:center}
 
-  /* CSV UPLOAD */
-  .csv-drop {
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    padding: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.15s;
-    background: var(--surface2);
-  }
-  .csv-drop:hover { border-color: var(--accent); background: rgba(0,229,160,0.03); }
-  .csv-drop-icon { font-size: 18px; margin-bottom: 4px; }
-  .csv-drop-text { font-size: 11px; color: var(--text-dim); }
-  .csv-drop-sub { font-size: 10px; color: var(--text-dimmer); margin-top: 2px; }
-  .csv-file-name {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent);
-    margin-top: 6px;
-    padding: 4px 8px;
-    background: rgba(0,229,160,0.08);
-    border-radius: 4px;
-    display: inline-block;
-  }
+#rightPanel{overflow-y:auto;display:flex;flex-direction:column}
+#topBar{background:#161b27;border-bottom:1px solid #2d3550;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+#topBar h2{font-size:13px;font-weight:600;color:#94a3b8;flex:1}
+.fbtns{display:flex;gap:3px}
+.fbtn{padding:4px 11px;border-radius:16px;border:1px solid #2d3550;background:transparent;color:#64748b;font-size:11px;font-weight:600;transition:all .15s;cursor:pointer}
+.fbtn.active,.fbtn:hover{border-color:#38bdf8;color:#38bdf8;background:#38bdf812}
 
-  /* AGENCY LIST */
-  .agency-list { max-height: 200px; overflow-y: auto; padding: 8px; }
-  .agency-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.15s;
-    margin-bottom: 3px;
-  }
-  .agency-item:hover { background: var(--surface2); border-color: var(--border); }
-  .agency-item.active { background: rgba(0,229,160,0.08); border-color: rgba(0,229,160,0.3); }
-  .agency-item.researching { border-color: rgba(0,184,255,0.4); animation: pulse 1.5s infinite; }
-  .agency-item.done { border-color: rgba(0,229,160,0.2); }
-  .agency-item.error { border-color: rgba(255,77,109,0.2); }
+#resultsArea{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px}
+#emptyState{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:#4a5568;gap:12px;text-align:center}
+#emptyState .eicon{font-size:42px;opacity:.35}
+#emptyState p{max-width:340px;line-height:1.6;font-size:13px}
 
-  @keyframes pulse {
-    0%,100% { background: rgba(0,184,255,0.05); }
-    50% { background: rgba(0,184,255,0.12); }
-  }
+.rcard{background:#161b27;border:1px solid #2d3550;border-radius:10px;overflow:hidden;transition:border-color .2s}
+.rcard.found{border-left:3px solid #4ade80}
+.rcard.partial{border-left:3px solid #fb923c}
+.rcard.notfound{border-left:3px solid #f87171}
+.rcard.running{border-left:3px solid #38bdf8}
+.rcard.error{border-left:3px solid #f472b6}
+.rcard.pending{border-left:3px solid #2d3550}
 
-  .agency-num {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dimmer);
-    min-width: 18px;
-  }
-  .agency-name { flex: 1; font-size: 12px; font-weight: 500; }
-  .agency-status {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--text-dimmer);
-    flex-shrink: 0;
-  }
-  .agency-status.pending { background: var(--text-dimmer); }
-  .agency-status.researching { background: var(--accent2); animation: blink 0.8s infinite; }
-  .agency-status.done { background: var(--accent); }
-  .agency-status.error { background: var(--error); }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.chead{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}
+.chead:hover{background:#1a1f2e}
+.ctitle{flex:1}
+.ctitle h3{font-size:13px;font-weight:600;margin-bottom:2px}
+.cmeta{font-size:11px;color:#64748b}
+.cactions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.chev{color:#4a5568;font-size:11px;transition:transform .2s;margin-left:4px}
+.chev.open{transform:rotate(180deg)}
 
-  .agency-tags { display: flex; gap: 3px; }
-  .tag {
-    font-size: 9px; font-family: var(--font-mono);
-    padding: 1px 5px; border-radius: 3px;
-    font-weight: 700; letter-spacing: 0.05em;
-  }
-  .tag-w { background: rgba(0,184,255,0.15); color: var(--water); }
-  .tag-s { background: rgba(124,92,252,0.15); color: var(--storm); }
-  .tag-e { background: rgba(255,107,53,0.15); color: var(--sewer); }
+.cbody{border-top:1px solid #1e2330;display:none;padding:14px}
+.cbody.open{display:block}
 
-  /* ACTION BUTTONS */
-  .btn {
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 9px 14px;
-    border-radius: 6px;
-    border: none; cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    transition: all 0.15s;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #000;
-    width: 100%;
-  }
-  .btn-primary:hover:not(:disabled) { background: #00ffb0; transform: translateY(-1px); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    font-size: 10px;
-  }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.sec{margin-bottom:14px}
+.stl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748b;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.utag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px}
+.u-water{background:#0c4a6e;color:#38bdf8}
+.u-sewer{background:#2e1065;color:#c084fc}
+.u-storm{background:#052e16;color:#4ade80}
 
-  .actions-row { display: flex; gap: 6px; margin-top: 8px; }
+.ltable,.ctable{width:100%;border-collapse:collapse;font-size:11px}
+.ltable th,.ctable th{text-align:left;padding:5px 8px;background:#1a1f2e;color:#64748b;font-weight:600;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.ltable td,.ctable td{padding:6px 8px;border-top:1px solid #1e2330;vertical-align:top}
+.ltable tr:hover td,.ctable tr:hover td{background:#1e233050}
+.ucell{font-family:'Courier New',monospace;font-size:10px;word-break:break-all;max-width:320px}
+.ch{color:#4ade80;font-weight:700}.cm{color:#fb923c;font-weight:700}.cl{color:#f87171;font-weight:700}
 
-  /* RIGHT PANEL */
-  .right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.glist{display:flex;flex-direction:column;gap:3px}
+.gitem{font-size:11px;color:#94a3b8;padding:4px 8px;background:#1e2330;border-radius:4px;display:flex;gap:7px;align-items:flex-start}
+.gitem::before{content:'—';color:#f87171;font-weight:700;flex-shrink:0;margin-top:1px}
 
-  /* TABS */
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    padding: 0 20px;
-    gap: 0;
-  }
-  .tab {
-    padding: 12px 16px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tbadge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:9px;background:#1e3a5f;color:#60a5fa}
 
-  /* CONTENT AREA */
-  .content { flex: 1; overflow-y: auto; padding: 20px; }
+.eblock{background:#12151f;border:1px solid #2d3550;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.ehead{padding:9px 12px;background:#1a1f2e;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.eto{font-size:11px;color:#94a3b8}
+.eto strong{color:#e2e8f0}
+.esubj{font-size:11px;color:#38bdf8;font-weight:600;margin-top:2px}
+.elabel{font-size:10px;color:#64748b;font-weight:700;white-space:nowrap;margin-top:2px}
+.ebody{padding:12px;font-size:11px;line-height:1.75;white-space:pre-wrap;color:#cbd5e1}
+.ebtns{padding:6px 12px;display:flex;gap:7px;border-top:1px solid #2d3550;flex-wrap:wrap}
 
-  /* EMPTY STATE */
-  .empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; text-align: center; gap: 12px;
-  }
-  .empty-icon { font-size: 48px; opacity: 0.3; }
-  .empty-title { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); }
-  .empty-sub { font-size: 12px; color: var(--text-dimmer); max-width: 300px; line-height: 1.5; }
+.nbox{background:#1e2330;border-radius:6px;padding:10px 12px;font-size:11px;line-height:1.7;color:#94a3b8;white-space:pre-wrap}
+.slist{display:flex;flex-direction:column;gap:3px}
+.srow{font-size:10px;color:#64748b;display:flex;gap:6px}
+.srow::before{content:'→';color:#38bdf8;flex-shrink:0}
+.srow a{color:#64748b}.srow a:hover{color:#38bdf8}
 
-  /* PROGRESS LOG */
-  .progress-log {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 16px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    max-height: 160px;
-    overflow-y: auto;
-  }
-  .log-line { margin-bottom: 4px; display: flex; gap: 8px; align-items: flex-start; }
-  .log-time { color: var(--text-dimmer); flex-shrink: 0; }
-  .log-step { color: var(--accent2); }
-  .log-text { color: var(--text-dim); flex: 1; }
-  .log-line.success .log-text { color: var(--accent); }
-  .log-line.warn .log-text { color: var(--warning); }
-  .log-line.error .log-text { color: var(--error); }
+.spin{display:inline-block;width:13px;height:13px;border:2px solid #2d3550;border-top-color:#38bdf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rph{display:flex;align-items:center;gap:10px;color:#64748b;font-size:12px;padding:8px 0}
 
-  /* UTILITY SECTIONS */
-  .utility-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .utility-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .utility-icon {
-    width: 28px; height: 28px;
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-    font-family: var(--font-mono);
-    font-weight: 700; font-size: 10px;
-  }
-  .utility-icon.water { background: rgba(0,184,255,0.15); color: var(--water); }
-  .utility-icon.storm { background: rgba(124,92,252,0.15); color: var(--storm); }
-  .utility-icon.sewer { background: rgba(255,107,53,0.15); color: var(--sewer); }
-  .utility-title { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
-  .utility-title.water { color: var(--water); }
-  .utility-title.storm { color: var(--storm); }
-  .utility-title.sewer { color: var(--sewer); }
-  .utility-count {
-    margin-left: auto;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dimmer);
-  }
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2d3550;border-radius:3px}
 
-  .utility-body { padding: 12px 16px; }
+.overlay{position:fixed;inset:0;background:#00000088;z-index:1000;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#1e2330;border:1px solid #2d3550;border-radius:10px;padding:22px;max-width:440px;width:90%}
+.modal h3{margin-bottom:10px;font-size:14px}
+.modal p{font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:16px}
+.modal .brow{justify-content:flex-end}
 
-  /* LAYER TABLE */
-  .layer-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-  .layer-table th {
-    text-align: left;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-dimmer);
-    padding: 0 8px 8px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .layer-table td {
-    padding: 7px 8px 7px 0;
-    font-size: 11px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    vertical-align: top;
-  }
-  .layer-name { font-weight: 500; color: var(--text); }
-  .layer-id { font-family: var(--font-mono); font-size: 10px; color: var(--text-dimmer); }
-  .layer-geom {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    padding: 2px 5px;
-    border-radius: 3px;
-    background: var(--surface2);
-    color: var(--text-dim);
-  }
-  .layer-url {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--accent2);
-    word-break: break-all;
-    max-width: 280px;
-  }
-  .layer-url a { color: inherit; text-decoration: none; }
-  .layer-url a:hover { text-decoration: underline; }
+#toast{position:fixed;bottom:18px;right:18px;background:#22c55e;color:#fff;padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;transform:translateY(50px);opacity:0;transition:all .25s;z-index:9999;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.err{background:#ef4444}
 
-  /* GAP BADGES */
-  .gaps-section { margin-top: 8px; }
-  .gaps-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dimmer); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
-  .gaps-list { display: flex; flex-wrap: wrap; gap: 4px; }
-  .gap-badge {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: rgba(255,77,109,0.08);
-    border: 1px solid rgba(255,77,109,0.2);
-    color: #ff8fa3;
-  }
-  .found-badge {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: rgba(0,229,160,0.08);
-    border: 1px solid rgba(0,229,160,0.2);
-    color: var(--accent);
-  }
-
-  /* CONTACTS */
-  .contacts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .contact-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-  }
-  .contact-tier {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-dimmer);
-    margin-bottom: 6px;
-  }
-  .contact-tier.t1 { color: var(--accent); }
-  .contact-tier.t2 { color: var(--accent2); }
-  .contact-tier.t3 { color: var(--warning); }
-  .contact-tier.t4 { color: var(--text-dim); }
-  .contact-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-  .contact-role { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
-  .contact-email {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--accent2);
-    display: block;
-    word-break: break-all;
-  }
-  .contact-phone { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
-  .contact-none { font-size: 11px; color: var(--text-dimmer); font-style: italic; }
-
-  /* EMAIL TEMPLATES */
-  .email-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 12px;
-    overflow: hidden;
-  }
-  .email-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .email-type { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
-  .email-audience { font-family: var(--font-mono); font-size: 10px; color: var(--accent); }
-  .email-body {
-    padding: 14px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: var(--text);
-    white-space: pre-wrap;
-    font-family: var(--font-body);
-  }
-  .copy-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* AGENCY HEADER */
-  .agency-header-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .agency-header-name { font-size: 18px; font-weight: 600; }
-  .agency-header-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-  .agency-score {
-    margin-left: auto;
-    text-align: center;
-  }
-  .score-num { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--accent); }
-  .score-label { font-size: 10px; color: var(--text-dimmer); font-family: var(--font-mono); }
-
-  /* SPINNER */
-  .spinner {
-    width: 16px; height: 16px;
-    border: 2px solid rgba(0,229,160,0.2);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    display: inline-block;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* GMAIL AUTH */
-  .gmail-section {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(0,184,255,0.03);
-  }
-  .gmail-signin-btn {
-    display: flex; align-items: center; gap: 8px;
-    width: 100%; padding: 8px 12px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: var(--font-body);
-    font-size: 12px; font-weight: 500;
-    color: var(--text);
-    transition: all 0.15s;
-  }
-  .gmail-signin-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-  .gmail-signin-btn.connected { border-color: rgba(0,229,160,0.4); color: var(--accent); background: rgba(0,229,160,0.06); }
-  .gmail-user { font-size: 10px; color: var(--text-dimmer); margin-top: 4px; font-family: var(--font-mono); }
-
-  /* SEND REVIEW PANEL */
-  .send-review-header {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .send-count { font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: var(--accent); }
-  .send-count-label { font-size: 11px; color: var(--text-dim); }
-  .send-all-btn {
-    margin-left: auto;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-family: var(--font-mono);
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .send-all-btn:hover:not(:disabled) { background: #00ffb0; }
-  .send-all-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .send-agency-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    overflow: hidden;
-  }
-  .send-agency-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-  }
-  .send-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
-  .send-agency-name { font-weight: 600; font-size: 13px; flex: 1; }
-  .send-to { font-family: var(--font-mono); font-size: 10px; color: var(--accent2); }
-  .send-status-badge {
-    font-family: var(--font-mono); font-size: 9px;
-    padding: 2px 7px; border-radius: 3px;
-    letter-spacing: 0.05em; text-transform: uppercase;
-  }
-  .send-status-badge.pending { background: rgba(255,179,71,0.1); color: var(--warning); border: 1px solid rgba(255,179,71,0.3); }
-  .send-status-badge.sent { background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.3); }
-  .send-status-badge.failed { background: rgba(255,77,109,0.1); color: var(--error); border: 1px solid rgba(255,77,109,0.3); }
-  .send-status-badge.skipped { background: rgba(122,127,135,0.1); color: var(--text-dimmer); border: 1px solid rgba(122,127,135,0.2); }
-
-  .send-email-preview {
-    padding: 12px 14px;
-    font-size: 11px;
-    line-height: 1.7;
-    color: var(--text-dim);
-    white-space: pre-wrap;
-    max-height: 140px;
-    overflow-y: auto;
-    font-family: var(--font-body);
-    border-bottom: 1px solid var(--border);
-  }
-  .send-email-meta {
-    padding: 8px 14px;
-    display: flex; gap: 16px;
-    font-size: 10px; font-family: var(--font-mono); color: var(--text-dimmer);
-  }
-  .send-email-meta span { color: var(--text-dim); }
-
-  /* API KEY */
-  .apikey-section {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(0,229,160,0.03);
-  }
-  .apikey-row { display: flex; gap: 6px; align-items: center; }
-  .apikey-input-wrap { flex: 1; position: relative; }
-  .apikey-input-wrap input {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding-right: 32px;
-    letter-spacing: 0.05em;
-  }
-  .apikey-toggle {
-    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; cursor: pointer;
-    color: var(--text-dimmer); font-size: 12px; padding: 0;
-  }
-  .apikey-toggle:hover { color: var(--text); }
-  .apikey-status {
-    font-family: var(--font-mono); font-size: 9px;
-    padding: 2px 6px; border-radius: 3px; white-space: nowrap;
-  }
-  .apikey-status.set { background: rgba(0,229,160,0.12); color: var(--accent); border: 1px solid rgba(0,229,160,0.3); }
-  .apikey-status.unset { background: rgba(255,77,109,0.1); color: #ff8fa3; border: 1px solid rgba(255,77,109,0.25); }
-
-  /* SEND EMAIL BUTTON */
-  .send-row { display: flex; gap: 8px; margin-top: 8px; }
-  .btn-send {
-    flex: 1;
-    background: rgba(0,229,160,0.1);
-    border: 1px solid rgba(0,229,160,0.3);
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    transition: all 0.15s;
-  }
-  .btn-send:hover { background: rgba(0,229,160,0.18); }
-  .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .no-data { font-size: 12px; color: var(--text-dimmer); font-style: italic; padding: 8px 0; }
-
-  /* RESEARCH STEP INDICATORS */
-  .step-indicators { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
-  .step-pip {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    padding: 3px 7px;
-    border-radius: 3px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text-dimmer);
-    transition: all 0.3s;
-  }
-  .step-pip.active { border-color: var(--accent2); color: var(--accent2); background: rgba(0,184,255,0.08); }
-  .step-pip.done { border-color: rgba(0,229,160,0.3); color: var(--accent); background: rgba(0,229,160,0.06); }
-
-  /* ALL RESULTS TABLE */
-  .results-filter-btn {
-    font-family: var(--font-mono); font-size: 10px;
-    padding: 5px 10px; border-radius: 4px;
-    border: 1px solid var(--border);
-    background: var(--surface2); color: var(--text-dim);
-    cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
-  }
-  .results-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .results-filter-btn.active { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.4); color: var(--accent); }
-  .all-results-table {
-    width: 100%; border-collapse: collapse; font-size: 11px;
-  }
-  .all-results-table th {
-    text-align: left; font-family: var(--font-mono); font-size: 9px;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dimmer);
-    padding: 8px 10px; border-bottom: 2px solid var(--border);
-    white-space: nowrap; position: sticky; top: 0;
-    background: var(--bg); z-index: 2;
-  }
-  .all-results-table td {
-    padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
-    vertical-align: top;
-  }
-  .all-results-table tr:hover td { background: rgba(255,255,255,0.02); }
-  .all-results-table tr.row-has-data td { background: rgba(0,229,160,0.02); }
-  .all-results-table tr.row-has-data:hover td { background: rgba(0,229,160,0.05); }
-  .all-results-table tr.row-error td { opacity: 0.5; }
-  .rt-status {
-    font-family: var(--font-mono); font-size: 9px;
-    padding: 2px 6px; border-radius: 3px; white-space: nowrap; display: inline-block;
-  }
-  .rt-status.found { background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.25); }
-  .rt-status.not-found { background: rgba(255,179,71,0.1); color: var(--warning); border: 1px solid rgba(255,179,71,0.25); }
-  .rt-status.error { background: rgba(255,77,109,0.1); color: var(--error); border: 1px solid rgba(255,77,109,0.25); }
-  .rt-status.pending { background: rgba(122,127,135,0.08); color: var(--text-dimmer); border: 1px solid rgba(122,127,135,0.15); }
-  .rt-jump-btn {
-    background: transparent; border: 1px solid var(--border);
-    color: var(--text-dimmer); font-family: var(--font-mono); font-size: 9px;
-    padding: 3px 8px; border-radius: 3px; cursor: pointer;
-    transition: all 0.15s; letter-spacing: 0.04em; white-space: nowrap;
-  }
-  .rt-jump-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ALL RESULTS TABLE */
-  .results-toolbar {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 14px; flex-wrap: wrap;
-  }
-  .results-filter-btn {
-    font-family: var(--font-mono); font-size: 10px;
-    padding: 5px 10px; border-radius: 4px;
-    border: 1px solid var(--border);
-    background: var(--surface2); color: var(--text-dim);
-    cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em;
-  }
-  .results-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .results-filter-btn.active { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.4); color: var(--accent); }
-  .results-summary {
-    margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-dimmer);
-  }
-  .all-results-table {
-    width: 100%; border-collapse: collapse; font-size: 11px;
-  }
-  .all-results-table th {
-    text-align: left; font-family: var(--font-mono); font-size: 9px;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dimmer);
-    padding: 8px 10px; border-bottom: 2px solid var(--border);
-    white-space: nowrap; position: sticky; top: 0;
-    background: var(--bg); z-index: 2;
-  }
-  .all-results-table td {
-    padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
-    vertical-align: top;
-  }
-  .all-results-table tr:hover td { background: rgba(255,255,255,0.02); }
-  .all-results-table tr.row-has-data td { background: rgba(0,229,160,0.03); }
-  .all-results-table tr.row-has-data:hover td { background: rgba(0,229,160,0.06); }
-  .all-results-table tr.row-no-data td { }
-  .all-results-table tr.row-error td { opacity: 0.5; }
-  .rt-agency { font-weight: 600; color: var(--text); }
-  .rt-meta { font-size: 10px; color: var(--text-dimmer); font-family: var(--font-mono); margin-top: 2px; }
-  .rt-status {
-    font-family: var(--font-mono); font-size: 9px;
-    padding: 2px 6px; border-radius: 3px; white-space: nowrap;
-  }
-  .rt-status.found { background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.25); }
-  .rt-status.not-found { background: rgba(255,179,71,0.1); color: var(--warning); border: 1px solid rgba(255,179,71,0.25); }
-  .rt-status.no-data { background: rgba(122,127,135,0.1); color: var(--text-dimmer); border: 1px solid rgba(122,127,135,0.2); }
-  .rt-status.error { background: rgba(255,77,109,0.1); color: var(--error); border: 1px solid rgba(255,77,109,0.25); }
-  .rt-status.pending { background: rgba(122,127,135,0.08); color: var(--text-dimmer); border: 1px solid rgba(122,127,135,0.15); }
-  .rt-layer-count {
-    font-family: var(--font-mono); font-size: 13px; font-weight: 700;
-  }
-  .rt-layer-count.has-layers { color: var(--accent); }
-  .rt-layer-count.no-layers { color: var(--text-dimmer); }
-  .rt-util-badges { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
-  .rt-contact { font-size: 11px; color: var(--text); }
-  .rt-contact-email { font-family: var(--font-mono); font-size: 9px; color: var(--accent2); display: block; margin-top: 1px; }
-  .rt-jump-btn {
-    background: transparent; border: 1px solid var(--border);
-    color: var(--text-dimmer); font-family: var(--font-mono); font-size: 9px;
-    padding: 3px 8px; border-radius: 3px; cursor: pointer;
-    transition: all 0.15s; letter-spacing: 0.04em; white-space: nowrap;
-  }
-  .rt-jump-btn:hover { border-color: var(--accent); color: var(--accent); }
+code{background:#1e2330;padding:1px 5px;border-radius:3px;font-size:11px}
 </style>
 </head>
 <body>
+<div id="app">
 
-<div class="header">
-  <div class="header-logo">CG</div>
-  <div>
-    <div class="header-title">CivilGrid // GIS Research Pro</div>
-    <div class="header-sub">Municipal Infrastructure Data Intelligence Tool</div>
+<header>
+  <div class="logo">Civil<span>Grid</span></div>
+  <div style="font-size:11px;color:#4a5568">GIS Research Tool</div>
+  <div class="hgap"></div>
+  <div class="key-wrap">
+    <label>ANTHROPIC KEY</label>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off">
+    <span class="key-ok" id="keyOk">✓</span>
   </div>
-  <div class="header-badge">⚡ AGENTIC RESEARCH</div>
+</header>
+
+<main>
+<div id="leftPanel">
+
+  <div class="ps">
+    <div class="stitle">Sender Profile</div>
+    <div class="field"><label>Name</label><input id="sName" value="Kathryn Pamperin"></div>
+    <div class="field"><label>Title</label><input id="sTitle" value="GIS Analyst II"></div>
+    <div class="field"><label>Company</label><input id="sCompany" value="CivilGrid"></div>
+    <div class="field"><label>Phone</label><input id="sPhone" value="415-592-6924"></div>
+    <div class="field"><label>Website</label><input id="sWeb" value="www.civilgrid.com"></div>
+    <div class="field"><label>Your Email (Gmail)</label><input id="sEmail" placeholder="you@gmail.com"></div>
+  </div>
+
+  <div class="ps">
+    <div class="stitle">Add Agency</div>
+    <div class="arow"><input id="muniInput" placeholder="Municipality / Agency name"></div>
+    <div class="arow">
+      <input id="countyInput" placeholder="County">
+      <input id="stateInput" placeholder="ST" maxlength="2" style="text-transform:uppercase">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="addAgency()">+ Add to Queue</button>
+  </div>
+
+  <div class="ps">
+    <div class="stitle">Batch CSV Import</div>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('csvFile').click()">
+      <input type="file" id="csvFile" accept=".csv" onchange="importCSV(event)">
+      📂 Drop CSV or click &nbsp;·&nbsp; columns: Agency, County, State
+    </div>
+    <div class="brow">
+      <button class="btn btn-ghost" onclick="exportCSV()" style="flex:1">↓ Export CSV</button>
+      <button class="btn btn-danger" onclick="confirmClear()">Clear All</button>
+    </div>
+  </div>
+
+  <div class="ps" style="flex:1">
+    <div class="stitle">Queue (<span id="queueCount">0</span>)</div>
+    <div id="queueList"></div>
+  </div>
+
+  <div id="batchControls">
+    <div class="pbar"><div class="pfill" id="progressFill" style="width:0%"></div></div>
+    <div id="batchStatus">No agencies queued</div>
+    <button class="btn btn-primary btn-full" id="runBtn" onclick="runBatch()">▶ Research All Pending</button>
+    <button class="btn btn-ghost btn-full" id="stopBtn" onclick="stopBatch()" style="display:none">■ Stop</button>
+  </div>
+
 </div>
 
-<div class="main">
-  <!-- LEFT PANEL -->
-  <div class="left-panel">
-    <!-- Gmail Auth -->
-    <div class="gmail-section">
-      <div class="panel-label" style="margin-bottom:7px">📧 Gmail Account</div>
-      <button class="gmail-signin-btn" id="gmail-btn" onclick="handleGmailAuth()">
-        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.26 8.8L1 4.54v14.92C1 20.86 2.14 22 3.54 22h14.92l-4.26-4.26-6.94-8.94z"/><path fill="#34A853" d="M18.46 8.8l4.26-4.26H3.54L7.8 8.8l4.2 3.4 6.46-3.4z"/><path fill="#4285F4" d="M22.72 4.54L18.46 8.8 22 12.34V4.54h.72z"/><path fill="#FBBC05" d="M1 4.54l4.26 4.26L1 12.34V4.54z"/></svg>
-        Connect Gmail to Send
-      </button>
-      <div class="gmail-user" id="gmail-user"></div>
+<div id="rightPanel">
+  <div id="topBar">
+    <h2 id="topBarTitle">Results</h2>
+    <div class="fbtns">
+      <button class="fbtn active" onclick="setFilter('all',this)">All</button>
+      <button class="fbtn" onclick="setFilter('found',this)">Found</button>
+      <button class="fbtn" onclick="setFilter('partial',this)">Partial</button>
+      <button class="fbtn" onclick="setFilter('notfound',this)">Not Found</button>
+      <button class="fbtn" onclick="setFilter('error',this)">Errors</button>
     </div>
-
-    <!-- API Key -->
-    <div class="apikey-section">
-      <div class="panel-label" style="margin-bottom:7px">🔑 Anthropic API Key</div>
-      <div style="font-size:10px;color:var(--warning);font-family:var(--font-mono);margin-bottom:6px;">⚠ Clear the field first, then paste your key</div>
-      <textarea id="inp-apikey"
-        rows="2"
-        placeholder="Paste your sk-ant-... key here"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-        style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:10px;padding:8px;border-radius:6px;resize:none;outline:none;line-break:anywhere;word-break:break-all;"
-        oninput="onApiKeyChange()" onchange="onApiKeyChange()" onkeyup="onApiKeyChange()" onpaste="setTimeout(onApiKeyChange,50)"
-      ></textarea>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-        <div class="apikey-status unset" id="apikey-status">NOT SET</div>
-        <div style="flex:1;display:flex;gap:6px;">
-          <button onclick="saveApiKey()" style="flex:1;background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.4);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;font-weight:700;">✓ SAVE</button>
-          <button onclick="testApiKey()" style="flex:1;background:rgba(0,184,255,0.1);border:1px solid rgba(0,184,255,0.3);color:var(--accent2);font-family:var(--font-mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;">🧪 TEST</button>
-          <button onclick="clearApiKey()" style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);color:var(--error);font-family:var(--font-mono);font-size:10px;padding:6px 10px;border-radius:4px;cursor:pointer;">✕</button>
-        </div>
-      </div>
-      <div id="api-test-result" style="font-size:10px;margin-top:5px;font-family:var(--font-mono);min-height:14px;"></div>
-    </div>
-
-    <!-- Sender Profile -->
-    <div class="panel-section">
-      <div class="panel-label">✍️ Sender Profile</div>
-      <div class="input-row">
-        <div class="input-group">
-          <div class="input-label">Full Name</div>
-          <input type="text" id="inp-sender-name" placeholder="Kathryn Pamperin" value="Kathryn Pamperin" />
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <div class="input-label">Title</div>
-          <input type="text" id="inp-sender-title" placeholder="GIS Analyst II" value="GIS Analyst II" />
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <div class="input-label">Email</div>
-          <input type="text" id="inp-sender-email" placeholder="kathryn@civilgrid.com" />
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <div class="input-label">Phone</div>
-          <input type="text" id="inp-sender-phone" placeholder="415-592-6924" value="415-592-6924" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Manual Input -->
-    <div class="panel-section">
-      <div class="panel-label">🏙 Single Agency</div>
-      <div class="input-row">
-        <div class="input-group">
-          <div class="input-label">Municipality</div>
-          <input type="text" id="inp-muni" placeholder="Town of Greenport" />
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-group">
-          <div class="input-label">County</div>
-          <input type="text" id="inp-county" placeholder="Columbia" />
-        </div>
-        <div class="input-group">
-          <div class="input-label">State</div>
-          <input type="text" id="inp-state" placeholder="NY" />
-        </div>
-      </div>
-      <button class="btn btn-primary" id="btn-research-one" onclick="researchSingle()">
-        <span>▶</span> Research This Agency
-      </button>
-    </div>
-
-    <!-- CSV Upload -->
-    <div class="panel-section">
-      <div class="panel-label">📋 Batch from CSV</div>
-      <div class="csv-drop" 
-        onclick="document.getElementById('csv-input').click()"
-        ondragover="event.preventDefault(); this.style.borderColor='var(--accent)'"
-        ondragleave="this.style.borderColor=''"
-        ondrop="event.preventDefault(); this.style.borderColor=''; handleCSVDrop(event)">
-        <div class="csv-drop-icon">📂</div>
-        <div class="csv-drop-text">Drop CSV or click to upload</div>
-        <div class="csv-drop-sub">Columns: Agency, County, State</div>
-      </div>
-      <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSV(event)" />
-      <div id="csv-filename"></div>
-      <div class="actions-row" style="margin-top:8px">
-        <button class="btn btn-primary" id="btn-research-all" onclick="researchAll()" disabled style="flex:1">
-          <span>⚡</span> Research All
-        </button>
-        <button class="btn btn-ghost" onclick="exportCSV()" id="btn-export" title="Export results to CSV" disabled>↓ CSV</button>
-        <button class="btn btn-ghost" onclick="clearAgencies()">Clear</button>
-      </div>
-    </div>
-
-    <!-- Agency List -->
-    <div class="panel-label" style="padding: 12px 16px 4px; border-top: 1px solid var(--border);">
-      <span id="agency-count">0 agencies</span>
-    </div>
-    <div class="agency-list" id="agency-list">
-      <div style="text-align:center; padding: 20px; color: var(--text-dimmer); font-size:11px;">
-        Add an agency above or upload a CSV
-      </div>
-    </div>
+    <button class="btn btn-ghost" style="font-size:11px" onclick="exportCSV()">↓ CSV</button>
   </div>
-
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
-    <div class="tabs">
-      <div class="tab active" id="tab-overview" onclick="switchTab('overview')">Overview</div>
-      <div class="tab" id="tab-gis" onclick="switchTab('gis')">GIS Layers</div>
-      <div class="tab" id="tab-contacts" onclick="switchTab('contacts')">Contacts</div>
-      <div class="tab" id="tab-emails" onclick="switchTab('emails')">Email Templates</div>
-      <div class="tab" id="tab-results" onclick="switchTab('results')">📊 All Results</div>
-      <div class="tab" id="tab-send" onclick="switchTab('send')">⚡ Send Outreach</div>
-    </div>
-    <div class="content" id="main-content">
-      <div class="empty-state">
-        <div class="empty-icon">🛰</div>
-        <div class="empty-title">No Agency Selected</div>
-        <div class="empty-sub">Enter a municipality above or upload a CSV, then click Research. The parallel engine probes endpoints + runs discovery searches simultaneously, then synthesizes everything in one pass.</div>
-      </div>
+  <div id="resultsArea">
+    <div id="emptyState">
+      <div class="eicon">🛰</div>
+      <p>Add agencies to the queue and click <strong>Research All Pending</strong>.<br><br>Results are saved in your browser and survive page refresh.</p>
     </div>
   </div>
 </div>
+</main>
+</div>
+
+<div class="overlay" id="clearModal">
+  <div class="modal">
+    <h3>Clear all data?</h3>
+    <p>Removes all agencies, results, and research history from local storage. Cannot be undone.</p>
+    <div class="brow">
+      <button class="btn btn-ghost" onclick="closeClear()">Cancel</button>
+      <button class="btn btn-danger" onclick="doClear()">Clear Everything</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
-// ─── GMAIL OAUTH ──────────────────────────────────────────────────────────────
-const GMAIL_CLIENT_ID = '421972929870-3bbgibgm50g7h63jvdoje4qjjphuokmr.apps.googleusercontent.com';
-const GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.send';
-let gmailToken = null;
-let gmailUserEmail = null;
-let tokenClient = null;
-
-function initGoogleAuth() {
-  if (typeof google === 'undefined') {
-    setTimeout(initGoogleAuth, 500);
-    return;
-  }
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GMAIL_CLIENT_ID,
-    scope: GMAIL_SCOPES,
-    callback: (tokenResponse) => {
-      if (tokenResponse.error) {
-        alert('Gmail auth failed: ' + tokenResponse.error);
-        return;
-      }
-      gmailToken = tokenResponse.access_token;
-      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: 'Bearer ' + gmailToken }
-      }).then(r => r.json()).then(info => {
-        gmailUserEmail = info.email;
-        document.getElementById('gmail-user').textContent = '✓ ' + gmailUserEmail;
-        const btn = document.getElementById('gmail-btn');
-        btn.className = 'gmail-signin-btn connected';
-        btn.innerHTML = btn.innerHTML.replace('Connect Gmail to Send', 'Gmail Connected');
-      });
-    }
-  });
-}
-
-function handleGmailAuth() {
-  if (!tokenClient) { alert('Google auth not loaded yet, please wait a moment.'); return; }
-  if (gmailToken) {
-    gmailToken = null;
-    gmailUserEmail = null;
-    document.getElementById('gmail-user').textContent = '';
-    const btn = document.getElementById('gmail-btn');
-    btn.className = 'gmail-signin-btn';
-    btn.innerHTML = btn.innerHTML.replace('Gmail Connected', 'Connect Gmail to Send');
-    return;
-  }
-  tokenClient.requestAccessToken({ prompt: 'consent' });
-}
-
-async function sendViaGmail(to, subject, body) {
-  if (!gmailToken) throw new Error('Not authenticated with Gmail');
-  const emailLines = [
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    'Content-Type: text/plain; charset=utf-8',
-    'MIME-Version: 1.0',
-    '',
-    body
-  ];
-  const raw = btoa(unescape(encodeURIComponent(emailLines.join('\r\n'))))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  const resp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + gmailToken,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ raw })
-  });
-  if (!resp.ok) {
-    const err = await resp.json();
-    throw new Error(err.error?.message || 'Gmail send failed');
-  }
-  return await resp.json();
-}
-
-// ─── SEND OUTREACH TAB ───────────────────────────────────────────────────────
-let sendQueue = {};
-
-function getNoGisAgencies() {
-  return agencies.map((a, i) => ({ a, i, r: results[i] })).filter(({ r }) => {
-    if (!r || r.error) return false;
-    const total = (r.water?.layers?.length || 0) + (r.storm?.layers?.length || 0) + (r.sewer?.layers?.length || 0);
-    return total === 0;
-  });
-}
-
-function renderSendTab() {
-  const content = document.getElementById('main-content');
-  const noGis = getNoGisAgencies();
-
-  if (noGis.length === 0) {
-    const doneCount = Object.keys(results).filter(k => results[k] && !results[k].error).length;
-    content.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📭</div>
-        <div class="empty-title">${doneCount === 0 ? 'No Research Done Yet' : 'All Agencies Have GIS Data'}</div>
-        <div class="empty-sub">${doneCount === 0 ? 'Run Research All first, then come back here to send outreach to agencies with no accessible GIS data.' : 'Every researched agency has accessible GIS layers — no outreach emails needed.'}</div>
-      </div>`;
-    return;
-  }
-
-  noGis.forEach(({ i }) => {
-    if (!sendQueue[i]) sendQueue[i] = { checked: true, status: 'pending' };
-  });
-
-  const checkedCount = noGis.filter(({ i }) => sendQueue[i]?.checked).length;
-  const sentCount = noGis.filter(({ i }) => sendQueue[i]?.status === 'sent').length;
-  const gmailReady = !!gmailToken;
-
-  content.innerHTML = `
-    <div class="send-review-header">
-      <div>
-        <div class="send-count">${noGis.length}</div>
-        <div class="send-count-label">Agencies with no GIS data found</div>
-        <div style="font-size:10px;color:var(--text-dimmer);margin-top:2px;">${checkedCount} selected · ${sentCount} sent</div>
-      </div>
-      ${!gmailReady ? `
-        <div style="margin-left:auto;text-align:right">
-          <div style="font-size:11px;color:var(--warning);font-family:var(--font-mono);">⚠ Connect Gmail first</div>
-          <div style="font-size:10px;color:var(--text-dimmer);margin-top:2px;">Use the panel on the left</div>
-        </div>
-      ` : `
-        <button class="send-all-btn" id="send-all-btn" onclick="sendAllEmails()">
-          ⚡ Send ${checkedCount} Email${checkedCount !== 1 ? 's' : ''}
-        </button>
-      `}
-    </div>
-
-    ${noGis.map(({ a, i, r }) => {
-      const q = sendQueue[i] || { checked: true, status: 'pending' };
-      const contact = (r.contacts || []).find(c => c.tier <= 2 && c.email) || (r.contacts || []).find(c => c.email);
-      const toEmail = contact?.email || 'No email found';
-      const hasEmail = !!contact?.email;
-      const emailBody = r.emailGIS || r.emailUtility || '';
-      const subject = `GIS Infrastructure Data Request — ${r.municipality || a.name}`;
-
-      return `
-        <div class="send-agency-card" id="send-card-${i}">
-          <div class="send-agency-header">
-            <input type="checkbox" class="send-checkbox" ${q.checked ? 'checked' : ''} ${!hasEmail || q.status === 'sent' ? 'disabled' : ''}
-              onchange="toggleSendCheck(${i}, this.checked)" />
-            <div class="send-agency-name">${r.municipality || a.name}</div>
-            <div class="send-to">${toEmail}</div>
-            <div class="send-status-badge ${q.status}" id="send-badge-${i}">${
-              q.status === 'sent' ? '✓ Sent' :
-              q.status === 'failed' ? '✗ Failed' :
-              q.status === 'skipped' ? 'Skipped' :
-              hasEmail ? 'Ready' : 'No Email'
-            }</div>
-          </div>
-          <div class="send-email-preview">${emailBody.substring(0, 400)}${emailBody.length > 400 ? '...' : ''}</div>
-          <div class="send-email-meta">
-            <div>TO: <span>${toEmail}</span></div>
-            <div>SUBJ: <span>${subject}</span></div>
-            ${q.status === 'failed' ? `<div style="color:var(--error)">ERR: <span>${q.error || 'Unknown error'}</span></div>` : ''}
-          </div>
-        </div>
-      `;
-    }).join('')}
-  `;
-}
-
-function toggleSendCheck(idx, checked) {
-  if (!sendQueue[idx]) sendQueue[idx] = { checked: true, status: 'pending' };
-  sendQueue[idx].checked = checked;
-  const noGis = getNoGisAgencies();
-  const checkedCount = noGis.filter(({ i }) => sendQueue[i]?.checked).length;
-  const btn = document.getElementById('send-all-btn');
-  if (btn) btn.textContent = `⚡ Send ${checkedCount} Email${checkedCount !== 1 ? 's' : ''}`;
-}
-
-async function sendAllEmails() {
-  if (!gmailToken) { alert('Please connect Gmail first.'); return; }
-  const noGis = getNoGisAgencies();
-  const toSend = noGis.filter(({ i }) => sendQueue[i]?.checked && sendQueue[i]?.status === 'pending');
-
-  if (toSend.length === 0) { alert('No emails to send — all are either sent, skipped, or unchecked.'); return; }
-
-  const btn = document.getElementById('send-all-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
-
-  for (const { a, i, r } of toSend) {
-    const contact = (r.contacts || []).find(c => c.tier <= 2 && c.email) || (r.contacts || []).find(c => c.email);
-    if (!contact?.email) {
-      sendQueue[i].status = 'skipped';
-      updateSendBadge(i, 'skipped', 'Skipped');
-      continue;
-    }
-
-    const subject = `GIS Infrastructure Data Request — ${r.municipality || a.name}`;
-    const body = r.emailGIS || r.emailUtility || '';
-
-    try {
-      updateSendBadge(i, 'pending', 'Sending...');
-      await sendViaGmail(contact.email, subject, body);
-      sendQueue[i].status = 'sent';
-      updateSendBadge(i, 'sent', '✓ Sent');
-      await new Promise(res => setTimeout(res, 300));
-    } catch (err) {
-      sendQueue[i].status = 'failed';
-      sendQueue[i].error = err.message;
-      updateSendBadge(i, 'failed', '✗ Failed');
-    }
-  }
-
-  if (btn) { btn.disabled = false; btn.textContent = 'Done'; }
-
-  const sentCount = Object.values(sendQueue).filter(q => q.status === 'sent').length;
-  const failedCount = Object.values(sendQueue).filter(q => q.status === 'failed').length;
-  alert(`Send complete!\n✓ ${sentCount} sent\n${failedCount > 0 ? `✗ ${failedCount} failed — check individual cards for details` : ''}`);
-}
-
-function updateSendBadge(idx, status, text) {
-  const badge = document.getElementById(`send-badge-${idx}`);
-  if (badge) { badge.className = `send-status-badge ${status}`; badge.textContent = text; }
-}
-
-// ─── STATE ───────────────────────────────────────────────────────────────────
+// ── STATE ──────────────────────────────────────────────────────────
 let agencies = [];
-let results = {};
-let activeAgency = null;
-let activeTab = 'overview';
-let isResearching = false;
+let running = false;
+let stopRequested = false;
+let currentFilter = 'all';
 
-async function testApiKey() {
-  const key = getApiKey();
-  const el = document.getElementById('api-test-result');
-  if (!key.startsWith('sk-ant-')) {
-    el.style.color = 'var(--error)';
-    el.textContent = '✗ No valid key entered';
-    return;
-  }
-  el.style.color = 'var(--accent2)';
-  el.textContent = 'Testing...';
+const S = { PENDING:'pending', RUNNING:'running', FOUND:'found', PARTIAL:'partial', NOTFOUND:'notfound', ERROR:'error' };
+
+// ── PERSISTENCE ────────────────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('cg2_agencies', JSON.stringify(agencies)); } catch(e){}
+  try { localStorage.setItem('cg2_sender', JSON.stringify(getSender())); } catch(e){}
+}
+
+function loadData() {
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 50,
-        messages: [{ role: 'user', content: 'Reply with just: {"ok":true}' }]
-      })
-    });
-    const data = await resp.json();
-    if (!resp.ok) {
-      el.style.color = 'var(--error)';
-      el.textContent = '✗ Error ' + resp.status + ': ' + (data?.error?.message || resp.statusText);
-      return;
+    const raw = localStorage.getItem('cg2_agencies');
+    if (raw) agencies = JSON.parse(raw);
+  } catch(e){ agencies=[]; }
+
+  try {
+    const k = localStorage.getItem('cg2_apikey') || localStorage.getItem('cg_apikey') || '';
+    if (k){ document.getElementById('apiKeyInput').value=k; document.getElementById('keyOk').classList.add('show'); }
+  } catch(e){}
+
+  try {
+    const s = JSON.parse(localStorage.getItem('cg2_sender')||'null');
+    if (s){
+      if(s.name)    document.getElementById('sName').value=s.name;
+      if(s.title)   document.getElementById('sTitle').value=s.title;
+      if(s.company) document.getElementById('sCompany').value=s.company;
+      if(s.phone)   document.getElementById('sPhone').value=s.phone;
+      if(s.web)     document.getElementById('sWeb').value=s.web;
+      if(s.email)   document.getElementById('sEmail').value=s.email;
     }
-    const text = data.content?.find(b => b.type === 'text')?.text || '';
-    el.style.color = 'var(--accent)';
-    el.textContent = '✓ Connected! Response: ' + text.substring(0, 80);
-  } catch(e) {
-    el.style.color = 'var(--error)';
-    el.textContent = '✗ ' + e.message;
-  }
+  } catch(e){}
 }
 
-function clearApiKey() {
-  const el = document.getElementById('inp-apikey');
-  if (el) { el.value = ''; el.focus(); }
-  _savedApiKey = '';
-  updateApiKeyStatus('');
-  document.getElementById('api-test-result').textContent = '';
+// ── API KEY ────────────────────────────────────────────────────────
+document.getElementById('apiKeyInput').addEventListener('input', function(){
+  const k = this.value.trim();
+  localStorage.setItem('cg2_apikey', k);
+  document.getElementById('keyOk').classList.toggle('show', !!k);
+});
+function getKey(){ return document.getElementById('apiKeyInput').value.trim() || localStorage.getItem('cg2_apikey') || ''; }
+
+// ── SENDER ─────────────────────────────────────────────────────────
+function getSender(){ return { name: v('sName'), title: v('sTitle'), company: v('sCompany'), phone: v('sPhone'), web: v('sWeb'), email: v('sEmail') }; }
+function v(id){ return document.getElementById(id).value.trim(); }
+['sName','sTitle','sCompany','sPhone','sWeb','sEmail'].forEach(id => document.getElementById(id).addEventListener('change', save));
+
+// ── ADD AGENCY ─────────────────────────────────────────────────────
+function addAgency(){
+  const muni = v('muniInput');
+  if(!muni){ toast('Enter a municipality name', true); return; }
+  const county = v('countyInput');
+  const state = v('stateInput').toUpperCase();
+  agencies.push({ id: uid(), muni, county, state, status: S.PENDING, result: null, error: null, addedAt: Date.now(), researchedAt: null });
+  document.getElementById('muniInput').value = '';
+  save(); renderAll();
+  toast('Added: ' + muni);
+}
+function uid(){ return 'ag_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
+document.getElementById('muniInput').addEventListener('keydown', e => { if(e.key==='Enter') addAgency(); });
+document.getElementById('stateInput').addEventListener('keydown', e => { if(e.key==='Enter') addAgency(); });
+
+function removeAgency(id){ agencies = agencies.filter(a => a.id !== id); save(); renderAll(); }
+
+function requeue(id){
+  const a = agencies.find(x=>x.id===id);
+  if(!a) return;
+  a.status = S.PENDING; a.result = null; a.error = null; a.researchedAt = null;
+  save(); renderAll(); toast('Re-queued: ' + a.muni);
 }
 
-// ─── API KEY MANAGEMENT ───────────────────────────────────────────────────────
-let _savedApiKey = '';
-
-function getApiKey() {
-  const el = document.getElementById('inp-apikey');
-  const fromField = (el?.value || '').trim().replace(/\s+/g, '');
-  return fromField || _savedApiKey;
-}
-
-function onApiKeyChange() {
-  const inp = document.getElementById('inp-apikey');
-  const key = inp?.value?.trim() || '';
-  _savedApiKey = key; // always mirror to memory
-  updateApiKeyStatus(key);
-}
-
-function saveApiKey() {
-  const inp = document.getElementById('inp-apikey');
-  // Force-read value via multiple methods
-  const key = (inp?.value || inp?.getAttribute('value') || '').trim();
-  _savedApiKey = key;
-  updateApiKeyStatus(key);
-  const el = document.getElementById('api-test-result');
-  if (key.startsWith('sk-ant-') && key.length > 20) {
-    el.style.color = 'var(--accent)';
-    el.textContent = '✓ Key saved — click Test to verify';
-  } else {
-    el.style.color = 'var(--error)';
-    el.textContent = key.length === 0 ? 'No key entered — paste your sk-ant-... key first' : 'Key format looks wrong — should start with sk-ant-';
-  }
-}
-
-function updateApiKeyStatus(key) {
-  const status = document.getElementById('apikey-status');
-  if (!status) return;
-  if (key.startsWith('sk-ant-') && key.length > 20) {
-    status.textContent = '✓ SET';
-    status.className = 'apikey-status set';
-  } else if (key.length > 0) {
-    status.textContent = 'INVALID';
-    status.className = 'apikey-status unset';
-  } else {
-    status.textContent = 'NOT SET';
-    status.className = 'apikey-status unset';
-  }
-}
-
-let _apiKeyVisible = false;
-function toggleApiKeyVisibility() {
-  const inp = document.getElementById('inp-apikey');
-  _apiKeyVisible = !_apiKeyVisible;
-  // We're using -webkit-text-security in CSS; toggle via style
-  inp.style.webkitTextSecurity = _apiKeyVisible ? 'none' : 'disc';
-  // Also set data-visible for any CSS hooks
-  inp.setAttribute('data-visible', _apiKeyVisible ? 'true' : 'false');
-}
-
-// ─── SENDER PROFILE ──────────────────────────────────────────────────────────
-function getSenderProfile() {
-  const name  = document.getElementById('inp-sender-name').value.trim()  || 'Kathryn Pamperin';
-  const title = document.getElementById('inp-sender-title').value.trim() || 'GIS Analyst II';
-  const email = document.getElementById('inp-sender-email').value.trim() || '';
-  const phone = document.getElementById('inp-sender-phone').value.trim() || '415-592-6924';
-  const sig = `${name}\n${title}, CivilGrid${email ? '\n' + email : ''}\n${phone} | www.civilgrid.com`;
-  return { name, title, email, phone, sig };
-}
-
-function markNoGisData(idx) {
-  if (!results[idx]) return;
-  results[idx].water = { layers: [], gaps: [] };
-  results[idx].storm = { layers: [], gaps: [] };
-  results[idx].sewer = { layers: [], gaps: [] };
-  results[idx].recycledWater = { layers: [], gaps: [] };
-  results[idx].suggestedStatus = 'Data Not Found, Outreach in Progress';
-  results[idx].researchNotes = (results[idx].researchNotes || '') + ' [Manually marked as No GIS Data]';
-  renderContent();
-  renderAgencyList();
-  alert('Marked as No GIS Data — this agency will now appear in the Send Outreach tab.');
-}
-
-function cancelResearch(idx) {
-  isResearching = false;
-  if (agencies[idx]) agencies[idx].status = 'error';
-  results[idx] = { error: 'Cancelled by user' };
-  renderAgencyList();
-  renderContent();
-}
-
-// ─── CSV HANDLING ─────────────────────────────────────────────────────────────
-function handleCSVDrop(event) {
-  const file = event.dataTransfer.files[0];
-  if (!file || !file.name.endsWith('.csv')) {
-    alert('Please drop a .csv file.');
-    return;
-  }
-  processCSVFile(file);
-}
-
-function handleCSV(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  processCSVFile(file);
-}
-
-function processCSVFile(file) {
-  document.getElementById('csv-filename').innerHTML = `<div class="csv-file-name">📄 ${file.name}</div>`;
+// ── CSV IMPORT ─────────────────────────────────────────────────────
+function importCSV(evt){
+  const file = evt.target.files[0]; if(!file) return;
   const reader = new FileReader();
-  reader.onload = (e) => {
-    const lines = e.target.result.split('\n').filter(l => l.trim());
-    agencies = [];
+  reader.onload = e => {
+    const lines = e.target.result.split('\n').map(l=>l.trim()).filter(Boolean);
+    let added = 0;
     lines.forEach((line, i) => {
-      if (i === 0 && line.toLowerCase().includes('agency')) return;
-      const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
-      if (parts[0]) {
-        agencies.push({
-          name: parts[0],
-          county: parts[1] || '',
-          state: parts[2] || 'NY',
-          status: 'pending'
-        });
-      }
+      if(i===0 && /agency/i.test(line.split(',')[0])) return;
+      const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g,''));
+      const muni = parts[0]; if(!muni) return;
+      agencies.push({ id: uid(), muni, county: parts[1]||'', state: (parts[2]||'').toUpperCase(), status: S.PENDING, result: null, error: null, addedAt: Date.now(), researchedAt: null });
+      added++;
     });
-    renderAgencyList();
-    document.getElementById('btn-research-all').disabled = agencies.length === 0;
-    document.getElementById('btn-research-all').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    evt.target.value = ''; save(); renderAll(); toast(`Imported ${added} agencies`);
   };
   reader.readAsText(file);
 }
 
-function clearAgencies() {
-  agencies = [];
-  results = {};
-  activeAgency = null;
-  renderAgencyList();
-  document.getElementById('btn-research-all').disabled = true;
-  document.getElementById('csv-filename').innerHTML = '';
-  showEmptyState();
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if(f) importCSV({ target: { files: [f], value: '' } });
+});
+
+// ── EXPORT CSV ─────────────────────────────────────────────────────
+function exportCSV(){
+  const hdr = ['Agency','County','State','Status','Water Layers','Sewer Layers','Storm Layers','All Layer URLs','Gaps','Top Contact Name','Top Contact Email','Top Contact Phone','Researched At'];
+  const rows = agencies.map(a => {
+    const r = a.result || {};
+    const w = (r.water||[]).map(l=>l.name||'').join(' | ');
+    const s = (r.sewer||[]).map(l=>l.name||'').join(' | ');
+    const st = (r.storm||[]).map(l=>l.name||'').join(' | ');
+    const urls = [...(r.water||[]),...(r.sewer||[]),...(r.storm||[])].map(l=>l.url||'').filter(Boolean).join(' | ');
+    const gaps = (r.gaps||[]).join(' | ');
+    const c = r.contacts && r.contacts[0];
+    const ts = a.researchedAt ? new Date(a.researchedAt).toLocaleDateString() : '';
+    return [a.muni, a.county, a.state, a.status, w, s, st, urls, gaps, c?.name||'', c?.email||'', c?.phone||'', ts];
+  });
+  const csv = [hdr,...rows].map(r => r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='civilgrid_research_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); URL.revokeObjectURL(url);
 }
 
-function researchSingle() {
-  const muni = document.getElementById('inp-muni').value.trim();
-  const county = document.getElementById('inp-county').value.trim();
-  const state = document.getElementById('inp-state').value.trim() || 'NY';
-  if (!muni) return;
+// ── BATCH ──────────────────────────────────────────────────────────
+async function runBatch(){
+  if(running) return;
+  const key = getKey();
+  if(!key){ toast('Enter your Anthropic API key in the header', true); return; }
+  const pending = agencies.filter(a => a.status === S.PENDING);
+  if(!pending.length){ toast('No pending agencies', true); return; }
 
-  const existing = agencies.findIndex(a => a.name.toLowerCase() === muni.toLowerCase());
-  if (existing >= 0) {
-    runResearch(existing);
-    return;
-  }
+  running = true; stopRequested = false;
+  document.getElementById('runBtn').style.display='none';
+  document.getElementById('stopBtn').style.display='';
 
-  agencies.unshift({ name: muni, county, state, status: 'pending' });
-  renderAgencyList();
-  runResearch(0);
-}
+  for(const ag of pending){
+    if(stopRequested) break;
+    const a = agencies.find(x=>x.id===ag.id);
+    if(!a || a.status !== S.PENDING) continue;
 
-// ─── RENDER AGENCY LIST ───────────────────────────────────────────────────────
-function renderAgencyList() {
-  const list = document.getElementById('agency-list');
-  document.getElementById('agency-count').textContent = `${agencies.length} agenc${agencies.length === 1 ? 'y' : 'ies'}`;
-  if (agencies.length === 0) {
-    list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-dimmer); font-size:11px;">Add an agency above or upload a CSV</div>';
-    return;
-  }
-  list.innerHTML = agencies.map((a, i) => {
-    const r = results[i];
-    const hasTags = r && (r.water?.layers?.length || r.storm?.layers?.length || r.sewer?.layers?.length);
-    return `
-      <div class="agency-item ${activeAgency === i ? 'active' : ''} ${a.status}" onclick="selectAgency(${i})">
-        <span class="agency-num">${i + 1}</span>
-        <span class="agency-name">${a.name}</span>
-        ${hasTags ? `<div class="agency-tags">
-          ${r.water?.layers?.length ? '<span class="tag tag-w">W</span>' : ''}
-          ${r.storm?.layers?.length ? '<span class="tag tag-s">S</span>' : ''}
-          ${r.sewer?.layers?.length ? '<span class="tag tag-e">E</span>' : ''}
-        </div>` : ''}
-        <div class="agency-status ${a.status}"></div>
-      </div>
-    `;
-  }).join('');
-}
+    a.status = S.RUNNING; save(); renderAll();
 
-function selectAgency(i) {
-  activeAgency = i;
-  renderAgencyList();
-  renderContent();
-}
-
-// ─── RESEARCH ─────────────────────────────────────────────────────────────────
-async function researchAll() {
-  if (isResearching) return;
-
-  const pending = agencies.map((a, i) => i).filter(i => agencies[i].status !== 'done');
-  if (pending.length === 0) { alert('All agencies already researched.'); return; }
-
-  const BATCH_SIZE = 10;
-  const batch = pending.slice(0, BATCH_SIZE);
-  const remaining = pending.length - batch.length;
-
-  for (let b = 0; b < batch.length; b++) {
-    const i = batch[b];
-    await runResearch(i, true);
-    if (b < batch.length - 1) {
-      for (let s = 15; s > 0; s--) {
-        document.getElementById('agency-count').textContent =
-          `${agencies.length} agencies · next in ${s}s`;
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      document.getElementById('agency-count').textContent = `${agencies.length} agencies`;
-    }
-  }
-
-  if (remaining > 0) {
-    const continueNext = confirm(
-      `Batch of ${batch.length} complete!\n\n${remaining} agencies still pending.\n\nClick OK to run the next batch of ${Math.min(BATCH_SIZE, remaining)}.`
-    );
-    if (continueNext) researchAll();
-  } else {
-    alert(`All ${agencies.length} agencies researched!`);
-  }
-}
-
-async function runResearch(idx, fromBatch = false) {
-  if (isResearching && !fromBatch) return;
-
-  const apiKey = getApiKey();
-  if (!apiKey.startsWith('sk-ant-') || apiKey.length < 20) {
-    alert('Please enter a valid Anthropic API key (starts with sk-ant-) before researching.');
-    return;
-  }
-
-  isResearching = true;
-  const a = agencies[idx];
-  agencies[idx].status = 'researching';
-  activeAgency = idx;
-  renderAgencyList();
-  showResearchingState(idx);
-
-  try {
-    const result = await callClaudeResearch(a.name, a.county, a.state, idx);
-    results[idx] = result;
-    agencies[idx].status = 'done';
-  } catch (err) {
-    agencies[idx].status = 'error';
-    const msg = err.name === 'AbortError' ? 'Timed out — research typically takes 60-90 seconds. Try again.' : err.message;
-    results[idx] = { error: msg };
-  }
-
-  isResearching = false;
-  renderAgencyList();
-  updateExportButton();
-  if (activeTab === 'results') { renderResultsTab(); return; }
-  if (activeAgency === idx) renderContent();
-}
-
-// ─── FAST PARALLEL RESEARCH ENGINE ───────────────────────────────────────────
-// Speed improvements:
-// • Phases 1+2 run in parallel (endpoint probing + AGO search fire at same time as Claude discovery)
-// • Deep URL probing runs in parallel (Promise.all, not sequential loop)
-// • Synthesis + contact gap-fill merged into one Claude call (eliminates a full round-trip)
-// • max_tokens cut to 10k (16k was wasted headroom, slows TTFB)
-// • MAX_TURNS cut to 7 (was 12)
-// • Prompts shortened (fewer tokens burned per turn = faster)
-
-// ── HARDCODED COUNTY SERVER LOOKUP ───────────────────────────────────────────
-// Exact verified URLs. Key: "county|state" lowercase.
-const COUNTY_SERVERS = {
-  // NY counties — verified ArcGIS REST servers
-  'genesee|ny':    ['https://gisp.geneseeny.gov/arcgis/rest/services/GC_Public/?f=pjson'],
-  'monroe|ny':     ['https://maps.monroecounty.gov/server/rest/services/?f=pjson'],
-  'erie|ny':       ['https://gis.erie.gov/arcgis/rest/services/?f=pjson'],
-  'onondaga|ny':   ['https://gis.ongov.net/arcgis/rest/services/?f=pjson'],
-  'albany|ny':     ['https://gis.albanycounty.com/arcgis/rest/services/?f=pjson'],
-  'suffolk|ny':    ['https://gisportal.suffolkcountyny.gov/arcgis/rest/services/?f=pjson'],
-  'nassau|ny':     ['https://gis.nassaucountyny.gov/arcgis/rest/services/?f=pjson'],
-  'westchester|ny':['https://gis.westchestergov.com/arcgis/rest/services/?f=pjson'],
-  'orange|ny':     ['https://gis.orangecountygov.com/arcgis/rest/services/?f=pjson'],
-  'dutchess|ny':   ['https://gis.dutchessny.gov/arcgis/rest/services/?f=pjson'],
-  'saratoga|ny':   ['https://gis.saratogacountyny.gov/arcgis/rest/services/?f=pjson'],
-  'niagara|ny':    ['https://gis.niagaracounty.com/arcgis/rest/services/?f=pjson'],
-  'columbia|ny':   ['https://gis.columbiacountyny.com/arcgis/rest/services/?f=pjson'],
-  'washington|ny': ['https://gis.co.washington.ny.us/arcgis/rest/services/?f=pjson'],
-  'sullivan|ny':   ['https://gis.sullivanny.us/arcgis/rest/services/?f=pjson'],
-  'broome|ny':     ['https://gis.broomecountyny.gov/arcgis/rest/services/?f=pjson'],
-  'oneida|ny':     ['https://gis.oneidacountyny.gov/arcgis/rest/services/?f=pjson'],
-  'cayuga|ny':     ['https://gis.cayugacounty.us/arcgis/rest/services/?f=pjson'],
-  'chautauqua|ny': ['https://gis.chautauquacounty.com/arcgis/rest/services/?f=pjson'],
-  'chemung|ny':    ['https://gis.chemungcounty.com/arcgis/rest/services/?f=pjson'],
-  'clinton|ny':    ['https://gis.clintoncounty.gov/arcgis/rest/services/?f=pjson'],
-  'cortland|ny':   ['https://gis.cortland-co.org/arcgis/rest/services/?f=pjson'],
-  'delaware|ny':   ['https://gis.co.delaware.ny.us/arcgis/rest/services/?f=pjson'],
-  'essex|ny':      ['https://gis.co.essex.ny.us/arcgis/rest/services/?f=pjson'],
-  'franklin|ny':   ['https://gis.franklincony.org/arcgis/rest/services/?f=pjson'],
-  'fulton|ny':     ['https://gis.fultoncountyny.gov/arcgis/rest/services/?f=pjson'],
-  'jefferson|ny':  ['https://gis.jeffersoncountyny.gov/arcgis/rest/services/?f=pjson'],
-  'lewis|ny':      ['https://gis.lewiscounty.org/arcgis/rest/services/?f=pjson'],
-  'livingston|ny': ['https://gis.livingstoncounty.us/arcgis/rest/services/?f=pjson'],
-  'madison|ny':    ['https://gis.madisoncounty.ny.gov/arcgis/rest/services/?f=pjson'],
-  'montgomery|ny': ['https://gis.co.montgomery.ny.us/arcgis/rest/services/?f=pjson'],
-  'ontario|ny':    ['https://gis.co.ontario.ny.us/arcgis/rest/services/?f=pjson'],
-  'orleans|ny':    ['https://gis.co.orleans.ny.us/arcgis/rest/services/?f=pjson'],
-  'oswego|ny':     ['https://gis.oswegocounty.com/arcgis/rest/services/?f=pjson'],
-  'otsego|ny':     ['https://gis.otsegocounty.com/arcgis/rest/services/?f=pjson'],
-  'putnam|ny':     ['https://gis.putnamcountyny.gov/arcgis/rest/services/?f=pjson'],
-  'rensselaer|ny': ['https://gis.rensco.com/arcgis/rest/services/?f=pjson'],
-  'rockland|ny':   ['https://gis.rocklandcountyny.gov/arcgis/rest/services/?f=pjson'],
-  'schenectady|ny':['https://gis.schenectadycounty.com/arcgis/rest/services/?f=pjson'],
-  'seneca|ny':     ['https://gis.co.seneca.ny.us/arcgis/rest/services/?f=pjson'],
-  'st. lawrence|ny':['https://gis.stlawco.org/arcgis/rest/services/?f=pjson'],
-  'steuben|ny':    ['https://gis.steubencony.org/arcgis/rest/services/?f=pjson'],
-  'tompkins|ny':   ['https://gis.tompkinscountyny.gov/arcgis/rest/services/?f=pjson'],
-  'ulster|ny':     ['https://gis.co.ulster.ny.us/arcgis/rest/services/?f=pjson'],
-  'warren|ny':     ['https://gis.co.warren.ny.us/arcgis/rest/services/?f=pjson'],
-  'wayne|ny':      ['https://gis.co.wayne.ny.us/arcgis/rest/services/?f=pjson'],
-  'wyoming|ny':    ['https://gis.wyomingco.net/arcgis/rest/services/?f=pjson'],
-  'yates|ny':      ['https://gis.yatescounty.org/arcgis/rest/services/?f=pjson'],
-};
-
-// Claude's built-in knowledge of county GIS servers — passed to synthesis prompt
-// so Claude searches them even when direct probing fails due to CORS
-const CLAUDE_COUNTY_KNOWLEDGE = {
-  'genesee|ny': 'Genesee County NY GIS server: gisp.geneseeny.gov/arcgis/rest/services/GC_Public/ — search for Oakfield, Batavia, Bergen, Byron, Alexander utility layers here',
-  'monroe|ny':  'Monroe County NY GIS server: maps.monroecounty.gov/server/rest/services/',
-  'erie|ny':    'Erie County NY GIS server: gis.erie.gov/arcgis/rest/services/',
-  'onondaga|ny':'Onondaga County NY GIS server: gis.ongov.net/arcgis/rest/services/',
-  'suffolk|ny': 'Suffolk County NY GIS server: gisportal.suffolkcountyny.gov/arcgis/rest/services/',
-  'washington|ny': 'Washington County NY GIS: gis.co.washington.ny.us/arcgis/rest/services/ — has sewer/water layers',
-  'sullivan|ny': 'Sullivan County NY GIS: gis.sullivanny.us/arcgis/rest/services/ — has sewer district layers',
-};
-
-function lookupCountyServers(county, state) {
-  const key = `${county.toLowerCase().trim()}|${state.toLowerCase().trim()}`;
-  return COUNTY_SERVERS[key] || [];
-}
-
-function getCountyKnowledge(county, state) {
-  const key = `${county.toLowerCase().trim()}|${state.toLowerCase().trim()}`;
-  return CLAUDE_COUNTY_KNOWLEDGE[key] || null;
-}
-
-const ARCGIS_URL_PATTERNS = (county, state) => {
-  const c = county.toLowerCase().replace(/\s+/g, '');
-  const cDash = county.toLowerCase().replace(/\s+/g, '-');
-  const st = state.toLowerCase();
-  return [
-    // Standard county GIS patterns
-    `https://gis.${c}.gov/arcgis/rest/services/?f=pjson`,
-    `https://gis.${c}county.gov/arcgis/rest/services/?f=pjson`,
-    `https://gis.${c}${st}.gov/arcgis/rest/services/?f=pjson`,
-    `https://${c}gis.com/arcgis/rest/services/?f=pjson`,
-    `https://maps.${c}.gov/arcgis/rest/services/?f=pjson`,
-    // gisp.* patterns — widely used by NY counties
-    `https://gisp.${c}ny.gov/arcgis/rest/services/?f=pjson`,
-    `https://gisp.${c}.gov/arcgis/rest/services/?f=pjson`,
-    `https://gisp.${c}county.gov/arcgis/rest/services/?f=pjson`,
-    // gisportal / gisserver / gis2 / arcgis subdomain patterns
-    `https://gisportal.${c}.gov/arcgis/rest/services/?f=pjson`,
-    `https://gisserver.${c}.gov/arcgis/rest/services/?f=pjson`,
-    `https://gis2.${c}.gov/arcgis/rest/services/?f=pjson`,
-    `https://arcgis.${c}.gov/arcgis/rest/services/?f=pjson`,
-    // COG / regional council patterns — maps.{cog}.org (e.g. maps.etcog.org)
-    `https://maps.${c}cog.org/arcgis/rest/services/?f=pjson`,
-    `https://maps.${c}council.org/arcgis/rest/services/?f=pjson`,
-    `https://gis.${c}cog.org/arcgis/rest/services/?f=pjson`,
-    `https://arcgis.${c}cog.org/arcgis/rest/services/?f=pjson`,
-    // Hub patterns
-    `https://${cDash}-${st}.hub.arcgis.com`,
-    `https://gis-data-co${c}${st}.hub.arcgis.com`,
-  ];
-};
-
-// ── STATE GIS CLEARINGHOUSE URLS — all 50 states ─────────────────────────────
-// Primary state-level ArcGIS REST endpoints. Probed for every search.
-const STATE_GIS_SERVERS = {
-  'AL': ['https://services.arcgis.com/4f2cMXSB3aBu9pVH/arcgis/rest/services/?f=pjson','https://gis.alabamagis.gov/arcgis/rest/services/?f=pjson'],
-  'AK': ['https://maps.dnr.alaska.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/?f=pjson'],
-  'AZ': ['https://gis.azwater.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/wdnDmEGsEBnJpNOh/arcgis/rest/services/?f=pjson'],
-  'AR': ['https://gis.arkansaswater.org/arcgis/rest/services/?f=pjson','https://mapping.ar.gov/arcgis/rest/services/?f=pjson'],
-  'CA': ['https://gis.water.ca.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/?f=pjson'],
-  'CO': ['https://gis.colorado.gov/public/rest/services/?f=pjson','https://services3.arcgis.com/66aUo8zsujfVXRIT/arcgis/rest/services/?f=pjson'],
-  'CT': ['https://gis.ct.gov/hosting/rest/services/?f=pjson','https://services1.arcgis.com/FjPcSmEFuDYlIdKC/arcgis/rest/services/?f=pjson'],
-  'DE': ['https://arcgis.its.delaware.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/amyvBUSSIooOakNV/arcgis/rest/services/?f=pjson'],
-  'FL': ['https://services1.arcgis.com/CY1LXxl9zlJeBuiB/arcgis/rest/services/?f=pjson','https://ca.dep.state.fl.us/arcgis/rest/services/?f=pjson'],
-  'GA': ['https://maps.itos.uga.edu/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/Ug5xGQbHsD8zuZzM/arcgis/rest/services/?f=pjson'],
-  'HI': ['https://geodata.hawaii.gov/arcgis/rest/services/?f=pjson','https://services.arcgis.com/pjdjiQ2MjQSMCnVI/arcgis/rest/services/?f=pjson'],
-  'ID': ['https://gis.idwr.idaho.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/qn1MHoKz3K3eBWHM/arcgis/rest/services/?f=pjson'],
-  'IL': ['https://gis.illinois.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/uUvqNr1kdjSRCLvQ/arcgis/rest/services/?f=pjson'],
-  'IN': ['https://gis.in.gov/arcgis/rest/services/?f=pjson','https://services.arcgis.com/XC3qHolBqNyvchFT/arcgis/rest/services/?f=pjson'],
-  'IA': ['https://gis.iowadot.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/ISZ0Dv6oy5x4RNZS/arcgis/rest/services/?f=pjson'],
-  'KS': ['https://services.kansasgis.org/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/2hHhHsUTgTkKvXqC/arcgis/rest/services/?f=pjson'],
-  'KY': ['https://kygisserver.ky.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/5mTbIhI6JCMdUHkd/arcgis/rest/services/?f=pjson'],
-  'LA': ['https://gis.ldh.la.gov/arcgis/rest/services/?f=pjson','https://services5.arcgis.com/O5K6bb5dZVZcTo5M/arcgis/rest/services/?f=pjson'],
-  'ME': ['https://arcgisserver.maine.gov/arcgis/rest/services/?f=pjson','https://gis2.maine.gov/arcgis/rest/services/?f=pjson'],
-  'MD': ['https://geodata.md.gov/imap/rest/services/?f=pjson','https://services1.arcgis.com/njFNhDsUCentVYJW/arcgis/rest/services/?f=pjson'],
-  'MA': ['https://gis-prod.digital.mass.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/hGdibHYSPO59RG1h/arcgis/rest/services/?f=pjson'],
-  'MI': ['https://gis.michigan.gov/arcgis/rest/services/?f=pjson','https://services3.arcgis.com/XBkSMdBAF19yPdaV/arcgis/rest/services/?f=pjson'],
-  'MN': ['https://resources.gisdata.mn.gov/pub/gdrs/data/pub/?f=pjson','https://services.arcgis.com/IQJG7HKMKrTMDhFh/arcgis/rest/services/?f=pjson'],
-  'MS': ['https://www.maris.state.ms.us/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/GE4Yv9OMnNJ6c8XK/arcgis/rest/services/?f=pjson'],
-  'MO': ['https://gis.mo.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/p9RcinEKtAWWAArx/arcgis/rest/services/?f=pjson'],
-  'MT': ['https://gis.mt.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/qe2ZCKhCPGsKVVqP/arcgis/rest/services/?f=pjson'],
-  'NE': ['https://gis.ne.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/Mln3QDMBGKE8TFuR/arcgis/rest/services/?f=pjson'],
-  'NV': ['https://gisdata.nv.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/?f=pjson'],
-  'NH': ['https://nhgeodata.unh.edu/nhgeodata/rest/services/?f=pjson','https://services1.arcgis.com/IXmb7aEPCKVhOdNc/arcgis/rest/services/?f=pjson'],
-  'NJ': ['https://gisdata.nj.gov/arcgis/rest/services/?f=pjson','https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/arcgis/rest/services/?f=pjson'],
-  'NM': ['https://rgis.unm.edu/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/qN3V93cYCBKPd8PN/arcgis/rest/services/?f=pjson'],
-  'NY': ['https://gisservices.its.ny.gov/arcgis/rest/services/?f=pjson','https://services6.arcgis.com/EbVsqCKVBzvURAdQ/arcgis/rest/services/?f=pjson'],
-  'NC': ['https://services.nconemap.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/YKiCFKSCFv3lIaAn/arcgis/rest/services/?f=pjson'],
-  'ND': ['https://gis.nd.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/zdGHAWLD5hjbqSfh/arcgis/rest/services/?f=pjson'],
-  'OH': ['https://gis.ohio.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/2iUE8l8JKrP2tygQ/arcgis/rest/services/?f=pjson'],
-  'OK': ['https://gis.owrb.ok.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/rKnFJCBRmVj54n1c/arcgis/rest/services/?f=pjson'],
-  'OR': ['https://gis.dogami.oregon.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/uUvqNr1kdjSRCLvQ/arcgis/rest/services/?f=pjson'],
-  'PA': ['https://gis.penndot.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/C5NJVzPpPxqKY08e/arcgis/rest/services/?f=pjson'],
-  'RI': ['https://www.rigis.org/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/?f=pjson'],
-  'SC': ['https://services.arcgis.com/4pBEVSIbBjqjHi2G/arcgis/rest/services/?f=pjson','https://gis1.dnr.sc.gov/arcgis/rest/services/?f=pjson'],
-  'SD': ['https://arcgis.sd.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/kWCXQAZuuCZmKCE0/arcgis/rest/services/?f=pjson'],
-  'TN': ['https://tnmap.tn.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/PlcPaDSFBnazBTSc/arcgis/rest/services/?f=pjson'],
-  'TX': ['https://services.arcgis.com/KTcxiTD9dsQw4r7Z/arcgis/rest/services/?f=pjson','https://txdot.maps.arcgis.com/arcgis/rest/services/?f=pjson'],
-  'UT': ['https://gis.utah.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/?f=pjson'],
-  'VT': ['https://maps.vermont.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/BkFxaEFNwHqX3tAw/arcgis/rest/services/?f=pjson'],
-  'VA': ['https://gismaps.vdem.virginia.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/?f=pjson'],
-  'WA': ['https://gis.dnr.wa.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/A51B3YBjjeAkotij/arcgis/rest/services/?f=pjson'],
-  'WV': ['https://gis.wv.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/wdnDmEGsEBnJpNOh/arcgis/rest/services/?f=pjson'],
-  'WI': ['https://dnrmaps.wi.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/ISZ0Dv6oy5x4RNZS/arcgis/rest/services/?f=pjson'],
-  'WY': ['https://gis.wyo.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/kgdkXkhzSm4BXLMH/arcgis/rest/services/?f=pjson'],
-};
-
-function getStateGisServers(stateAbbr) {
-  const key = stateAbbr.toUpperCase().trim();
-  return STATE_GIS_SERVERS[key] || [];
-}
-
-// Extract org IDs from any text
-function extractOrgIds(text) {
-  const matches = text.match(/services\.arcgis\.com\/([A-Za-z0-9]{15,20})/g) || [];
-  return [...new Set(matches.map(m => m.split('/')[1]))];
-}
-
-// Extract full services.arcgis.com service URLs from any text
-function extractAgoServiceUrls(text) {
-  const matches = text.match(/https?:\/\/services\d*\.arcgis\.com\/[A-Za-z0-9]{15,20}\/[^\s"'<>)]+/g) || [];
-  return [...new Set(matches.map(u => u.replace(/[/,]+$/, '')))];
-}
-
-// Search ArcGIS Online sharing API — returns parsed items with service URLs
-async function searchAgoItems(county, state, muni) {
-  const searches = [
-    // Search by name — most likely to return exact matches
-    `https://www.arcgis.com/sharing/rest/search?q=${encodeURIComponent(`"${county}" water OR sewer OR stormwater type:"Feature Service"`)}&num=20&f=json`,
-    `https://www.arcgis.com/sharing/rest/search?q=${encodeURIComponent(`"${muni}" water OR sewer OR stormwater type:"Feature Service"`)}&num=10&f=json`,
-    `https://www.arcgis.com/sharing/rest/search?q=${encodeURIComponent(`"${county}" ${state} utility GIS type:"Feature Service"`)}&num=10&f=json`,
-    `https://www.arcgis.com/sharing/rest/search?q=${encodeURIComponent(`"${county}" ${state} water OR sewer type:"Map Service"`)}&num=10&f=json`,
-  ];
-
-  const results = await Promise.all(searches.map(u => probeUrl(u, 8000)));
-  const combined = results.filter(Boolean).join('\n');
-
-  // Parse out all service URLs from the JSON responses
-  const serviceUrls = extractAgoServiceUrls(combined);
-  const orgIds = extractOrgIds(combined);
-
-  // Also try to parse JSON items directly to get URLs
-  const directUrls = [];
-  for (const r of results.filter(Boolean)) {
     try {
-      const parsed = JSON.parse(r);
-      for (const item of (parsed.results || [])) {
-        if (item.url) directUrls.push(item.url);
-        if (item.item?.url) directUrls.push(item.item.url);
-      }
-    } catch {}
+      a.result = await researchAgency(key, a.muni, a.county, a.state);
+      const total = (a.result.water||[]).length + (a.result.sewer||[]).length + (a.result.storm||[]).length;
+      if(total===0) a.status = S.NOTFOUND;
+      else if((a.result.gaps||[]).length>0) a.status = S.PARTIAL;
+      else a.status = S.FOUND;
+      a.researchedAt = Date.now();
+    } catch(err){
+      a.status = S.ERROR; a.error = err.message;
+    }
+    save(); renderAll(); updateProgress();
   }
 
-  const allUrls = [...new Set([...serviceUrls, ...directUrls])].filter(u => u.includes('arcgis.com'));
-  return { content: combined, orgIds, serviceUrls: allUrls };
+  running = false; stopRequested = false;
+  document.getElementById('runBtn').style.display='';
+  document.getElementById('stopBtn').style.display='none';
+  updateProgress(); toast('Research complete');
 }
 
-// Probe a services.arcgis.com org catalog, then drill into every utility-looking service
-// to enumerate its actual layers. Returns org catalog + all layer details.
-async function probeServicesArcgisOrgs(orgIds, logFn) {
-  if (!orgIds.length) return [];
-  logFn(`🌐 Probing ${orgIds.length} services.arcgis.com org(s) — full layer enumeration...`);
+function stopBatch(){ stopRequested=true; toast('Stopping after current agency…'); }
 
-  const UTILITY_KEYWORDS = /water|sewer|storm|drain|utility|utilities|infrastructure|main|hydrant|valve|manhole|inlet|outfall|pipe|mains|sanit|wastewater|stormwater/i;
-
-  const results = await Promise.all(
-    orgIds.map(async orgId => {
-      // Step 1: Get the org's service catalog
-      const catalogUrl = `https://services.arcgis.com/${orgId}/ArcGIS/rest/services/?f=pjson`;
-      const catalogContent = await probeUrl(catalogUrl, 12000);
-
-      if (!catalogContent) {
-        logFn(`  ✗ Org ${orgId}: CORS blocked — passing to Claude`);
-        return { orgId, url: catalogUrl, content: null, corsBlocked: true, layers: [] };
-      }
-
-      logFn(`  ✓ Org ${orgId}: got service catalog`, 'success');
-
-      // Step 2: Parse service names from catalog
-      let serviceNames = [];
-      try {
-        const catalogJson = JSON.parse(catalogContent);
-        serviceNames = (catalogJson.services || []).map(s => ({ name: s.name, type: s.type }));
-      } catch {
-        // Fallback: regex parse service names from raw text
-        const matches = catalogContent.match(/"name"\s*:\s*"([^"]+)"/g) || [];
-        serviceNames = matches.map(m => ({ name: m.match(/"([^"]+)"/g)?.[1]?.replace(/"/g,'') || '', type: 'FeatureServer' }));
-      }
-
-      // Step 3: Filter to utility-related services
-      const utilityServices = serviceNames.filter(s => UTILITY_KEYWORDS.test(s.name));
-      logFn(`    Found ${serviceNames.length} services, ${utilityServices.length} utility-related: ${utilityServices.map(s=>s.name).join(', ') || 'none'}`);
-
-      // Step 4: Drill into each utility service to get its layers — all in parallel
-      const layerDetails = await Promise.all(
-        utilityServices.slice(0, 12).map(async svc => {
-          const svcType = svc.type || 'FeatureServer';
-          const svcUrl = `https://services.arcgis.com/${orgId}/ArcGIS/rest/services/${svc.name}/${svcType}?f=pjson`;
-          const svcContent = await probeUrl(svcUrl, 8000);
-          if (!svcContent) return null;
-
-          // Parse layers from this service
-          let layers = [];
-          try {
-            const svcJson = JSON.parse(svcContent);
-            layers = (svcJson.layers || []).map(l => ({
-              layerId: String(l.id),
-              name: l.name,
-              geometry: l.geometryType?.replace('esriGeometry','') || '',
-              url: `${svcUrl.replace('?f=pjson','')}/${l.id}`,
-              features: [],
-              is403: false
-            }));
-          } catch {
-            // If parse fails, still record the service URL
-            layers = [{ layerId: '0', name: svc.name, geometry: '', url: svcUrl.replace('?f=pjson',''), features: [], is403: false }];
-          }
-
-          logFn(`    ✓ ${svc.name}: ${layers.length} layer(s)`, 'success');
-          return { serviceName: svc.name, serviceType: svcType, serviceUrl: svcUrl, layers, rawContent: svcContent.substring(0, 2000) };
-        })
-      );
-
-      const validLayerDetails = layerDetails.filter(Boolean);
-      const totalLayers = validLayerDetails.reduce((sum, s) => sum + s.layers.length, 0);
-      logFn(`  ✅ Org ${orgId}: ${utilityServices.length} utility services · ${totalLayers} layers enumerated`, 'success');
-
-      return {
-        orgId,
-        url: catalogUrl,
-        content: catalogContent.substring(0, 3000),
-        corsBlocked: false,
-        serviceDetails: validLayerDetails,
-        layers: validLayerDetails.flatMap(s => s.layers)
-      };
-    })
-  );
-
-  return results.filter(Boolean);
+function updateProgress(){
+  const total = agencies.length;
+  const done = agencies.filter(a=>[S.FOUND,S.PARTIAL,S.NOTFOUND,S.ERROR].includes(a.status)).length;
+  document.getElementById('progressFill').style.width = total ? Math.round(done/total*100)+'%' : '0%';
+  document.getElementById('batchStatus').textContent = total ? `${done} / ${total} complete` : 'No agencies queued';
 }
 
-// ── KNOWN SERVER LOOKUP from mappingsupport.com curated CSV ──────────────────
-// 7,500+ verified government ArcGIS server URLs, updated weekly
-let _serverListCache = null;
+// ── CLAUDE API ─────────────────────────────────────────────────────
+async function researchAgency(apiKey, muni, county, state){
+  const s = getSender();
+  const sig = `${s.name}\n${s.title}, ${s.company}\n${s.phone} | ${s.web}`;
 
-async function fetchKnownServerList() {
-  if (_serverListCache) return _serverListCache;
+  const isNY = (state||'').toUpperCase() === 'NY';
+  const nyHint = isNY ? `\nNEW YORK NOTE: Small NY villages/towns rarely have their own GIS server. Their utility layers are almost always hosted on the COUNTY ArcGIS server. Always search the county server first. Common NY county patterns: gisp.[county]ny.gov/arcgis/rest/services/, gis.[county]county.com/arcgis/rest/services/. For Genesee County specifically: https://gisp.geneseeny.gov/arcgis/rest/services/GC_Public/` : '';
+
+  const system = `You are a GIS infrastructure data researcher for CivilGrid, a civil design platform. You research municipalities to find publicly accessible GIS layers for water, sanitary sewer, and stormwater infrastructure.
+
+CivilGrid integrates utility GIS data into a design platform for civil engineers — we are asking for a data partnership, not selling anything. Engineers using CivilGrid get accurate utility basemaps, which reduces dig-ins and rework.
+
+Sender signature:
+${sig}
+${nyHint}
+
+WHAT TO FIND:
+- WATER: mains, hydrants, valves, service connections, laterals, meters, backflow preventers, tanks/towers, facilities, fittings, manholes
+- SEWER: gravity mains, force mains, manholes, lift stations, service lines, clean outs, fittings, valves, meters, OSSF/septic
+- STORM: pipes/lines, inlets, catch basins, manholes, outfalls, channels, ditches, detention basins, culverts, headwalls, recharge basins
+
+SEARCH STEPS — run ALL:
+
+1. MUNICIPALITY PORTAL: Search "[muni] [state] GIS open data arcgis water sewer stormwater". Check:
+   - gis.[muni].[state].gov/arcgis/rest/services
+   - [muni].maps.arcgis.com
+   - [muni].hub.arcgis.com or [muni].opendata.arcgis.com
+   - Town/city website GIS page
+
+2. COUNTY SERVER: Search "[county] County [state] GIS arcgis rest services water sewer utility". NY especially: browse full service folder list. Look for utility/water/sewer folders. Search site:[county domain] water OR sewer.
+
+3. ARCGIS ONLINE: Search "[muni] [county] [state] water sewer stormwater site:arcgis.com". Look for services1-9.arcgis.com FeatureServer/MapServer endpoints.
+
+4. STATE CLEARINGHOUSE: NY → data.gis.ny.gov. Other states → search "[state] GIS clearinghouse [muni]".
+
+5. CONTACTS: Search "[muni] [state] GIS administrator email" AND "[muni] [state] water superintendent contact" AND "[muni] [state] town clerk email phone". Check official staff directory pages.
+
+For each layer: provide FULL REST URL including layer ID (e.g. .../FeatureServer/0). Mark confidence: high=direct endpoint confirmed, medium=portal page but REST URL inferred, low=referenced but unclear.
+
+Return ONLY valid JSON. No markdown. No explanation before or after. Schema:
+
+{
+  "agency": "Full official name",
+  "jurisdiction_type": "city|town|village|township|county|district",
+  "utility_structure": "One sentence: who operates water/sewer/storm",
+  "water": [{ "name":"", "url":"full REST URL or null", "format":"FeatureServer|MapServer|WFS|download|hub", "layer_id":"0", "geometry":"Line|Point|Polygon", "features":["water mains","hydrants"], "confidence":"high|medium|low" }],
+  "sewer": [ same ],
+  "storm": [ same ],
+  "gaps": ["list of feature types not publicly found, e.g. Water: meters, Sewer: lift stations"],
+  "contacts": [
+    { "priority":1, "role":"GIS Administrator", "name":"Full name or null", "email":"email or null", "phone":"phone or null", "source":"where confirmed" }
+  ],
+  "emails": {
+    "gis": { "to":"email or null", "subject":"", "body":"Full body, direct opener, under 180 words, end with sender sig" },
+    "utility": { "to":"email or null", "subject":"", "body":"Non-GIS audience, ask for data in any format including CAD/paper/spreadsheet, under 180 words, end with sender sig" }
+  },
+  "sources": [{ "label":"what was found here", "url":"URL" }],
+  "notes": "2-3 sentences: what exists publicly, what is locked/missing, best next step"
+}
+
+Critical: never fabricate URLs. If a URL is uncertain, still include it but set confidence to low. Contacts must be real confirmed people — do not invent names or guess emails.`;
+
+  const userMsg = `Research this agency for public GIS infrastructure data:
+Municipality: ${muni}
+County: ${county||'unknown'}
+State: ${state||'unknown'}
+
+Execute all search steps. Return only the JSON object.`;
+
+  let resp;
   try {
-    // Fetch the CSV — it's CORS-friendly (plain text, no auth)
-    const resp = await fetch('https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv', {
-      signal: AbortSignal.timeout(8000)
-    });
-    if (!resp.ok) return [];
-    const text = await resp.text();
-    // Parse lines — each line has: jurisdiction, state, URL, type, notes...
-    const lines = text.split('\n').filter(l => l.trim() && !l.startsWith('#'));
-    _serverListCache = lines.map(l => {
-      const parts = l.split(',');
-      return { raw: l, url: (parts[2] || parts[1] || '').trim().replace(/^"|"$/g,'') };
-    }).filter(r => r.url.includes('arcgis') || r.url.includes('/rest/'));
-    return _serverListCache;
-  } catch { return []; }
-}
-
-async function lookupKnownServers(county, state, muni, logFn) {
-  const servers = await fetchKnownServerList();
-  if (!servers.length) {
-    logFn('  ⚠ Could not fetch server list — using pattern probing only');
-    return [];
-  }
-  const terms = [
-    county.toLowerCase(), 
-    muni.toLowerCase().replace(/^(city|town|village|township)\s+of\s+/i,''),
-    state.toLowerCase()
-  ];
-  // Find any server URL containing the county or municipality name
-  const matches = servers.filter(s => {
-    const url = s.url.toLowerCase();
-    return terms.some(t => t.length > 3 && url.includes(t));
-  }).map(s => s.url).slice(0, 6);
-
-  if (matches.length > 0) {
-    logFn(`  📋 Known server list: ${matches.length} match(es) for ${county}/${muni}`, 'success');
-    matches.forEach(u => logFn(`     ${u.substring(0,70)}`, 'success'));
-  }
-  return matches;
-}
-
-async function probeUrl(url, maxChars = 4000) {
-  try {
-    const resp = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (!resp.ok) return null;
-    return (await resp.text()).substring(0, maxChars);
-  } catch { return null; }
-}
-async function claudeCall(messages, systemPrompt, logFn, searchCounter) {
-  const apiKey = getApiKey();
-  let msgs = [...messages];
-  let localSearches = 0;
-  const MAX_TURNS = 7;
-
-  for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 10000,
-        system: systemPrompt,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: msgs
-      })
-    });
-    if (!resp.ok) {
-      const e = await resp.json().catch(() => ({}));
-      throw new Error(`API ${resp.status}: ${e?.error?.message || resp.statusText}`);
-    }
-    const data = await resp.json();
-    const content = data.content || [];
-    for (const b of content) {
-      if (b.type === 'tool_use' && b.name === 'web_search') {
-        localSearches++; searchCounter.count++;
-        logFn(`🔍 Search #${searchCounter.count}: "${b.input?.query || ''}"`, '');
-      }
-    }
-    msgs.push({ role: 'assistant', content });
-    if (data.stop_reason === 'end_turn') {
-      return { text: content.filter(b => b.type==='text').map(b=>b.text).join(''), searchCount: localSearches };
-    }
-    if (data.stop_reason === 'tool_use') {
-      msgs.push({ role: 'user', content: content.filter(b=>b.type==='tool_use').map(b=>({ type:'tool_result', tool_use_id:b.id, content:[] })) });
-      continue;
-    }
-    return { text: content.filter(b=>b.type==='text').map(b=>b.text).join(''), searchCount: localSearches };
-  }
-  const last = msgs.filter(m=>m.role==='assistant').pop();
-  return { text: (last?.content||[]).filter(b=>b.type==='text').map(b=>b.text).join(''), searchCount: localSearches };
-}
-
-function parseJSON(raw) {
-  const clean = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-  const s = clean.indexOf('{'), e = clean.lastIndexOf('}');
-  if (s===-1||e===-1) throw new Error('No JSON found');
-  return JSON.parse(clean.slice(s, e+1));
-}
-
-async function callClaudeResearch(muni, county, state, idx) {
-  const logEl = document.getElementById('research-log');
-  const pipEls = document.querySelectorAll('.step-pip');
-
-  function log(text, type='') {
-    if (!logEl) return;
-    const t = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    logEl.innerHTML += `<div class="log-line ${type}"><span class="log-time">${t}</span><span class="log-text">${text}</span></div>`;
-    logEl.scrollTop = logEl.scrollHeight;
-  }
-  function pip(i, st) { if (pipEls[i]) pipEls[i].className = 'step-pip ' + st; }
-
-  const sender = getSenderProfile();
-  const st = state || 'NY';
-  const countyServers = lookupCountyServers(county, st);
-  const countyKnowledge = getCountyKnowledge(county, st);
-
-  log(`🚀 Researching ${muni}, ${county} County, ${st}...`);
-  pip(0,'active');
-
-  // Quick parallel probes — fire and forget, don't block
-  const urlsToProbe = ARCGIS_URL_PATTERNS(county, st);
-  const agoSearchUrl = `https://www.arcgis.com/sharing/rest/search?q=${encodeURIComponent(`"${county}" ${st} water OR sewer OR stormwater type:"Feature Service"`)}&num=20&f=json`;
-
-  const [probeResults, agoResult] = await Promise.all([
-    Promise.allSettled(urlsToProbe.map(u => probeUrl(u, 2000))),
-    probeUrl(agoSearchUrl, 4000)
-  ]);
-
-  const foundEndpoints = [];
-  probeResults.forEach((r, i) => {
-    if (r.status==='fulfilled' && r.value) {
-      foundEndpoints.push({ url: urlsToProbe[i], snippet: r.value.substring(0,500) });
-      log(`  ✓ Live endpoint: ${urlsToProbe[i].replace('?f=pjson','').substring(0,60)}`, 'success');
-    }
-  });
-
-  pip(0,'done'); pip(1,'active');
-  log(`  Probed ${urlsToProbe.length} endpoints · ${foundEndpoints.length} responded`);
-
-  // Build context block for Claude
-  const contextLines = [
-    `AGENCY: ${muni}, ${county} County, ${st.toUpperCase()}`,
-    countyKnowledge ? `⭐ KNOWN COUNTY GIS SERVER: ${countyKnowledge}` : '',
-    countyServers.length > 0 ? `COUNTY SERVER URL: ${countyServers.join(', ')}` : '',
-    foundEndpoints.length > 0
-      ? `LIVE ENDPOINTS FOUND:\n${foundEndpoints.map(e=>`  ${e.url}\n  ${e.snippet}`).join('\n---\n')}`
-      : 'No self-hosted endpoints responded (likely CORS blocked)',
-    agoResult ? `ARCGIS ONLINE SEARCH:\n${agoResult.substring(0,1500)}` : '',
-  ].filter(Boolean).join('\n\n');
-
-  pip(1,'done'); pip(2,'active');
-  log('🔍 Calling Claude with web search...');
-
-  const systemPrompt = `You are a GIS infrastructure data specialist for CivilGrid. Research the given municipality and return structured JSON.
-
-SEARCH STRATEGY — do ALL of these in order:
-1. If a KNOWN COUNTY GIS SERVER is listed, search for it immediately: fetch its services and find water/sewer/stormwater layers for the specific municipality
-2. Search ArcGIS Online: "${muni} ${county} water sewer stormwater arcgis"
-3. Search: "${county} County ${st} GIS arcgis rest services utility"  
-4. Search: "${muni} ${st} water sewer infrastructure GIS layers"
-5. Search for contacts: "${muni} ${st} town clerk water superintendent email"
-6. Search state clearinghouse: "${st} GIS ${county} utility water sewer"
-
-Return ONLY valid JSON starting with { ending with }:
-{"municipality":"","county":"","state":"","portalUrl":null,"portalType":"ArcGIS Hub/Open Data/REST Service/None","dataType":"REST Service/SHP/GDB/PDF Only/None","hasRecycledWater":false,"water":{"layers":[{"name":"","layerId":"0","geometry":"Point/Line/Polygon","url":"","features":[],"is403":false}],"gaps":[],"pdfMaps":[]},"storm":{"layers":[],"gaps":[],"pdfMaps":[]},"sewer":{"layers":[],"gaps":[],"pdfMaps":[]},"recycledWater":{"layers":[],"gaps":[],"pdfMaps":[]},"contacts":[{"tier":1,"name":"","role":"GIS Administrator","email":"","phone":null},{"tier":2,"name":"","role":"Water/Sewer Superintendent","email":"","phone":null},{"tier":3,"name":"","role":"Town Clerk","email":"","phone":null},{"tier":4,"name":null,"role":"General Contact","email":"","phone":null}],"suggestedStatus":"Data Found, Loading in Progress/Data Not Found, Outreach in Progress/Completed, No GIS Data","emailGIS":"","emailUtility":"","researchNotes":""}
-
-Layer URL examples:
-- Self-hosted: https://gisp.geneseeny.gov/arcgis/rest/services/GC_Public/Utilities/FeatureServer/0
-- AGO-hosted: https://services.arcgis.com/{orgId}/ArcGIS/rest/services/{Name}/FeatureServer/{id}
-
-Contacts: real confirmed only. 
-emailGIS + emailUtility: under 80 words each, sign with: ${sender.sig}
-suggestedStatus: "Data Found, Loading in Progress" if layers found; "Data Not Found, Outreach in Progress" if contact but no layers; "Completed, No GIS Data" if neither.
-researchNotes: list what you searched and found.`;
-
-  const userMsg = `${contextLines}\n\nResearch this agency. Run all 6 search steps. Return complete JSON.`;
-
-  let searchCount = 0;
-  let msgs = [{ role:'user', content: userMsg }];
-  let finalText = '';
-
-  for (let turn = 0; turn < 8; turn++) {
-    pip(Math.min(2 + turn, 7), 'active');
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 8000,
-        system: systemPrompt,
-        tools:[{ type:'web_search_20250305', name:'web_search' }],
-        messages: msgs
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        system,
+        messages: [{ role: 'user', content: userMsg }]
       })
     });
+  } catch(netErr){
+    if(location.protocol==='file:') throw new Error('Open this page via GitHub Pages — cannot call the API from a file:// URL. See README.');
+    throw new Error('Network error: ' + netErr.message);
+  }
 
-    if (!resp.ok) {
-      const err = await resp.json().catch(()=>({}));
-      throw new Error(`API ${resp.status}: ${err?.error?.message || resp.statusText}`);
-    }
+  if(!resp.ok){
+    let msg = `API error ${resp.status}`;
+    try{ const j=await resp.json(); msg=j.error?.message||msg; }catch(e){}
+    if(resp.status===401) msg='Invalid API key — check the header field';
+    if(resp.status===429) msg='Rate limited — wait a moment and try again';
+    throw new Error(msg);
+  }
 
-    const data = await resp.json();
-    const content = data.content || [];
+  const data = await resp.json();
+  let raw = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+  raw = raw.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+  const si = raw.indexOf('{'), ei = raw.lastIndexOf('}');
+  if(si===-1||ei===-1) throw new Error('No JSON in response. Preview: '+raw.slice(0,200));
+  return JSON.parse(raw.slice(si,ei+1));
+}
 
-    for (const b of content) {
-      if (b.type==='tool_use' && b.name==='web_search') {
-        searchCount++;
-        log(`🔍 Search #${searchCount}: "${b.input?.query||''}"`, '');
+// ── RENDER ─────────────────────────────────────────────────────────
+function setFilter(f, btn){
+  currentFilter=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderResults();
+}
+
+function renderAll(){ renderQueue(); renderResults(); updateProgress(); }
+
+function renderQueue(){
+  const list = document.getElementById('queueList');
+  document.getElementById('queueCount').textContent = agencies.length;
+  if(!agencies.length){ list.innerHTML='<div style="font-size:11px;color:#4a5568;text-align:center;padding:6px">No agencies yet</div>'; return; }
+  list.innerHTML = agencies.map(a => `
+    <div class="qi">
+      <div class="qi-name" title="${esc(a.muni)}${a.county?', '+esc(a.county):''}${a.state?', '+esc(a.state):''}">
+        ${esc(a.muni)}${a.county?`<span style="color:#4a5568">, ${esc(a.county)}</span>`:''}
+      </div>
+      <span class="qbadge b-${a.status}">${bl(a.status)}</span>
+      <button class="qi-btn" onclick="scrollTo('${a.id}')" title="View">↗</button>
+      ${[S.ERROR,S.NOTFOUND,S.PARTIAL].includes(a.status)?`<button class="qi-btn" onclick="requeue('${a.id}')" title="Re-research">↺</button>`:''}
+      <button class="qi-btn qi-del" onclick="removeAgency('${a.id}')" title="Remove">×</button>
+    </div>`).join('');
+}
+
+function renderResults(){
+  const area = document.getElementById('resultsArea');
+  const empty = document.getElementById('emptyState');
+
+  const filtered = agencies.filter(a => {
+    if(currentFilter==='all') return true;
+    if(currentFilter==='found') return a.status===S.FOUND;
+    if(currentFilter==='partial') return a.status===S.PARTIAL;
+    if(currentFilter==='notfound') return a.status===S.NOTFOUND;
+    if(currentFilter==='error') return a.status===S.ERROR;
+    return true;
+  });
+
+  document.getElementById('topBarTitle').textContent = `Results (${filtered.length}${currentFilter!=='all'?' — '+currentFilter:''})`;
+
+  if(!agencies.length){
+    area.innerHTML=''; area.appendChild(empty); empty.style.display='flex'; return;
+  }
+  if(empty.parentNode===area) area.removeChild(empty);
+
+  // Keyed update — preserve open/closed state
+  const existing = {};
+  area.querySelectorAll('[data-cid]').forEach(el => existing[el.dataset.cid]=el);
+
+  const frag = document.createDocumentFragment();
+  filtered.forEach(a => {
+    let el = existing[a.id];
+    if(el){
+      // Update status class
+      el.className = `rcard ${a.status}`;
+      // Update badge
+      const badge = el.querySelector('.qbadge');
+      if(badge){ badge.className=`qbadge b-${a.status}`; badge.textContent=bl(a.status); }
+      // Update meta line
+      const meta = el.querySelector('.cmeta');
+      if(meta) meta.textContent = getCardMeta(a);
+      // If result just arrived and body not yet rendered, update body
+      if(a.result && !el.dataset.rendered){
+        el.dataset.rendered='1';
+        const body=el.querySelector('.cbody');
+        if(body) body.innerHTML=buildBody(a);
       }
-      if (b.type==='text') finalText += b.text;
-    }
-
-    msgs.push({ role:'assistant', content });
-
-    if (data.stop_reason === 'end_turn') break;
-    if (data.stop_reason === 'tool_use') {
-      msgs.push({ role:'user', content: content.filter(b=>b.type==='tool_use').map(b=>({ type:'tool_result', tool_use_id:b.id, content:[] })) });
-      continue;
-    }
-    break;
-  }
-
-  pip(5,'done'); pip(6,'done');
-  log(`  ${searchCount} searches performed`);
-  log('📋 Parsing results...', 'success');
-
-  let parsed;
-  try {
-    parsed = parseJSON(finalText);
-    log(`✅ Done: ${(parsed.water?.layers?.length||0)+(parsed.storm?.layers?.length||0)+(parsed.sewer?.layers?.length||0)} layers found`, 'success');
-  } catch(e) {
-    log(`⚠ Parse error: ${e.message}`, 'warn');
-    parsed = {
-      municipality:muni, county, state:st,
-      portalUrl:null, portalType:'None',
-      water:{layers:[],gaps:[]}, storm:{layers:[],gaps:[]},
-      sewer:{layers:[],gaps:[]}, contacts:[],
-      emailGIS:'', emailUtility:'',
-      researchNotes:`${searchCount} searches. Parse error: ${e.message}. Raw: ${finalText.substring(0,400)}`
-    };
-  }
-
-  pip(7,'done');
-  return parsed;
-}
-
-  const sender = getSenderProfile();
-  const st = state || 'NY';
-  log(`🚀 ${muni}, ${county} County, ${st} — parallel research starting`);
-
-  // ── PHASE 1+2: Endpoint probing + AGO item search + Claude discovery — all parallel ──
-  pip(0, 'active');
-  log('⚡ Phases 1+2 running in parallel: endpoint probing + AGO item search + discovery searches...');
-
-  const urlsToProbe = ARCGIS_URL_PATTERNS(county, st);
-  const stateServers = getStateGisServers(st);
-  const countyServers = lookupCountyServers(county, st);
-
-  // Probe hardcoded county servers immediately — these are exact known URLs
-  if (countyServers.length > 0) {
-    log(`🎯 Hardcoded county server found for ${county} County ${st.toUpperCase()}: ${countyServers[0].substring(0,65)}`, 'success');
-  }
-
-  const discoveryQueries = [
-    `${county} County ${st} ArcGIS REST services water sewer utility`,
-    `${muni} ${county} GIS open data portal arcgis hub`,
-    `${county} ${st} arcgis water sewer stormwater layers`,
-    `${county} county ${st} GIS administrator email planning`,
-    `${muni} ${st} water sewer GIS infrastructure map`,
-    `${st} GIS clearinghouse ${county} utility`,
-    `${county} county ${st} hub.arcgis.com open data`,
-    `"${muni}" town clerk water superintendent contact email`,
-    `site:arcgis.com "${county}" water sewer stormwater feature service`,
-    `"${county}" "${st}" services.arcgis.com utility GIS layers`,
-    `gisp.${county.toLowerCase().replace(/\s+/g,'')}ny.gov arcgis rest services`,
-    `"${county}" NY arcgis server gisp OR gisportal OR gis2 water sewer`,
-    `"${county}" OR "${muni}" council of governments COG arcgis GIS water sewer`
-  ];
-
-  const discoverySysPrompt = `GIS data scout. Run ALL searches listed. For any HARDCODED COUNTY SERVER listed, fetch it at ?f=pjson and report every utility service found. CRITICAL: extract every full services.arcgis.com URL. Write a plain-text report: all ArcGIS REST URLs found, open data portals, named staff with emails. No JSON. Run all searches first.`;
-
-  const countyKnowledge = getCountyKnowledge(county, st);
-
-  const countyServerNote = countyServers.length > 0 || countyKnowledge
-    ? `\n\n🎯 KNOWN COUNTY GIS SERVER:\n${countyKnowledge || ''}${countyServers.length > 0 ? '\nURL: ' + countyServers.join('\n') : ''}\nFetch this server and find all water/sewer/storm utility layers for ${muni}.`
-    : '';
-
-  const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}${countyServerNote}`;
-
-  // Fire everything in parallel — no blocking calls before this
-  const [probeSettled, stateProbeSettled, countyProbeSettled, agoItemResult, discoveryResult] = await Promise.all([
-    Promise.allSettled(urlsToProbe.map(u => probeUrl(u, 3000))),
-    Promise.allSettled(stateServers.map(u => probeUrl(u, 4000))),
-    Promise.allSettled(countyServers.map(u => probeUrl(u, 6000))),
-    searchAgoItems(county, st, muni),
-    claudeCall([{ role:'user', content: discoveryUserMsg }], discoverySysPrompt, log, S)
-  ]);
-
-  // Process self-hosted probe results
-  const discoveredEndpoints = [];
-  probeSettled.forEach((r, i) => {
-    if (r.status==='fulfilled' && r.value) {
-      discoveredEndpoints.push({ url: urlsToProbe[i], content: r.value });
-      log(`  ✓ Self-hosted: ${urlsToProbe[i].replace('?f=pjson','').substring(0,60)}`, 'success');
+      // If re-queued, clear rendered flag
+      if(a.status===S.PENDING || a.status===S.RUNNING){
+        el.dataset.rendered='';
+        const body=el.querySelector('.cbody');
+        if(body) body.innerHTML=buildBody(a);
+      }
+      frag.appendChild(el);
+      delete existing[a.id];
+    } else {
+      el = document.createElement('div');
+      el.dataset.cid = a.id;
+      el.className = `rcard ${a.status}`;
+      if(a.result) el.dataset.rendered='1';
+      el.innerHTML = buildCard(a);
+      frag.appendChild(el);
     }
   });
-
-  // Process hardcoded county server results
-  const countyEndpoints = [];
-  countyProbeSettled.forEach((r, i) => {
-    if (r.status==='fulfilled' && r.value) {
-      countyEndpoints.push({ url: countyServers[i], content: r.value });
-      log(`  ✓ County server fetched: ${countyServers[i].substring(0,65)}`, 'success');
-    } else if (countyServers[i]) {
-      log(`  ⚠ County server CORS blocked — Claude searching: ${countyServers[i].substring(0,65)}`);
-    }
-  });
-
-  // Process state clearinghouse results
-  const stateEndpoints = [];
-  stateProbeSettled.forEach((r, i) => {
-    if (r.status==='fulfilled' && r.value) {
-      stateEndpoints.push({ url: stateServers[i], content: r.value });
-      log(`  ✓ State GIS server (${st.toUpperCase()}): ${stateServers[i].substring(0,60)}`, 'success');
-    }
-  });
-
-  const { text: discoveryReport, searchCount: discSearches } = discoveryResult;
-
-  // Collect ALL org IDs and AGO service URLs from every source
-  const allOrgIds = [...new Set([
-    ...agoItemResult.orgIds,
-    ...extractOrgIds(discoveryReport),
-    ...extractOrgIds(discoveredEndpoints.map(e=>e.content).join('\n'))
-  ])];
-  const allAgoUrls = [...new Set([
-    ...agoItemResult.serviceUrls,
-    ...extractAgoServiceUrls(discoveryReport)
-  ])];
-
-  log(`  ✓ Discovery: ${discSearches} searches · ${discoveredEndpoints.length} self-hosted · ${countyEndpoints.length} county · ${allOrgIds.length} org ID(s) · ${allAgoUrls.length} AGO URL(s)`);
-  if (allOrgIds.length > 0) log(`  🎯 Org IDs: ${allOrgIds.join(', ')}`, 'success');
-  if (allAgoUrls.length > 0) allAgoUrls.slice(0,5).forEach(u => log(`  🎯 AGO URL: ${u.substring(0,80)}`, 'success'));
-  pip(0,'done'); pip(1,'done'); pip(2,'active');
-
-  // ── PHASE 3: Parallel deep-probe self-hosted + attempt services.arcgis.com org catalogs ──
-  log('🔬 Phase 3: Deep-probing REST endpoints + services.arcgis.com org catalogs...');
-
-  const urlRegex = /https?:\/\/[^\s"'\]>),]+\/arcgis\/rest\/services[^\s"'\]>),]*/gi;
-  const selfHostedFoundUrls = [...new Set([
-    ...(discoveryReport.match(urlRegex) || []),
-    ...discoveredEndpoints.map(e => e.url)
-  ].map(u => u.split('?')[0].replace(/\/+$/,'')).filter(u => !u.includes('services.arcgis.com')))].slice(0, 6);
-
-  const [selfHostedResults, servicesArcgisResults] = await Promise.all([
-    Promise.all(selfHostedFoundUrls.map(async url => {
-      const content = await probeUrl(url + '?f=pjson', 4000);
-      if (content) log(`  ✓ Self-hosted layer list: ${url.substring(0,55)}`, 'success');
-      return content ? { url: url+'?f=pjson', content } : null;
-    })),
-    probeServicesArcgisOrgs(allOrgIds, log)
-  ]);
-
-  const deepProbes = [...selfHostedResults.filter(Boolean)];
-  const agoEnumeratedLayers = servicesArcgisResults.flatMap(r => r.layers || []);
-  const agoOrgCatalogs = servicesArcgisResults.filter(r => !r.corsBlocked);
-  const agoOrgCorsBlocked = servicesArcgisResults.filter(r => r.corsBlocked);
-  deepProbes.push(...agoOrgCatalogs);
-
-  log(`  Self-hosted: ${selfHostedResults.filter(Boolean).length} · AGO org catalogs: ${agoOrgCatalogs.length} fetched · ${agoOrgCorsBlocked.length} CORS-blocked`);
-  if (agoEnumeratedLayers.length > 0) {
-    agoEnumeratedLayers.forEach(l => log(`    🗂 ${l.name} → ${l.url.substring(0,70)}`, 'success'));
-  }
-  pip(2,'done'); pip(3,'active');
-
-  // ── PHASE 4: Synthesis ────────────────────────────────────────────────────
-  log('🧠 Phase 4: Synthesis + gap-fill...');
-
-  const corsBlockedNote = agoOrgCorsBlocked.length > 0
-    ? `⚠ CORS-BLOCKED ORG IDs — search for these:\n${agoOrgCorsBlocked.map(r=>`  services.arcgis.com/${r.orgId} — search "${r.orgId} arcgis utility water sewer stormwater layers"`).join('\n')}`
-    : '';
-
-  const agoUrlsNote = allAgoUrls.length > 0
-    ? `✅ ARCGIS ONLINE SERVICE URLs FOUND:\n${allAgoUrls.map(u=>`  ${u}`).join('\n')}`
-    : '';
-
-  // Pre-enumerated layers grouped by service
-  const agoLayerBlock = agoOrgCatalogs.length > 0
-    ? `✅ PRE-ENUMERATED AGO LAYERS (${agoEnumeratedLayers.length} total — USE THESE DIRECTLY, no need to re-fetch):\n` +
-      agoOrgCatalogs.map(org =>
-        `ORG: ${org.orgId}\n` +
-        (org.serviceDetails || []).map(svc =>
-          `  SERVICE: ${svc.serviceName} (${svc.serviceType})\n` +
-          svc.layers.map(l =>
-            `    Layer ${l.layerId}: "${l.name}" [${l.geometry}] → ${l.url}`
-          ).join('\n')
-        ).join('\n')
-      ).join('\n===\n')
-    : '';
-
-  const evidenceBlock = [
-    `AGENCY: ${muni}, ${county} County, ${st.toUpperCase()}`,
-    countyServers.length > 0
-      ? `🎯 HARDCODED COUNTY SERVER FOR ${county.toUpperCase()} COUNTY ${st.toUpperCase()} — search for ${muni} utility layers here:\n${countyServers.map(u=>`  ${u}`).join('\n')}${countyEndpoints.length > 0 ? '\n\nSERVICE CATALOG FETCHED:\n'+countyEndpoints.map(e=>e.content.substring(0,2000)).join('\n') : '\n(CORS blocked — use web_search to find layers at this URL)'}`
-      : '',
-    countyServers.length > 0
-      ? `🎯 HARDCODED COUNTY SERVER FOR ${county.toUpperCase()} COUNTY ${st.toUpperCase()} — search for ${muni} utility layers here:\n${countyServers.join('\n')}${countyEndpoints.length > 0 ? '\n\nSERVICE CATALOG:\n'+countyEndpoints.map(e=>e.content.substring(0,2000)).join('\n') : '\n(CORS blocked — Claude: use web_search on this URL to find layers)'}`
-      : '',
-    agoLayerBlock,
-    agoUrlsNote,
-    corsBlockedNote,
-    discoveredEndpoints.length > 0
-      ? `SELF-HOSTED ENDPOINTS:\n${discoveredEndpoints.map(e=>`${e.url}\n${e.content.substring(0,500)}`).join('\n---\n')}`
-      : 'SELF-HOSTED ENDPOINTS: None responded',
-    stateEndpoints.length > 0
-      ? `STATE GIS CLEARINGHOUSE (${st.toUpperCase()}) — search these for ${county} County / ${muni} layers:\n${stateEndpoints.map(e=>`${e.url}\n${e.content.substring(0,600)}`).join('\n---\n')}`
-      : `STATE GIS CLEARINGHOUSE (${st.toUpperCase()}): Could not connect`,
-    selfHostedResults.filter(Boolean).length > 0
-      ? `SELF-HOSTED LAYER LISTS:\n${selfHostedResults.filter(Boolean).map(p=>`${p.url}\n${p.content.substring(0,1200)}`).join('\n---\n')}`
-      : '',
-    `DISCOVERY REPORT (${discSearches} web searches):\n${discoveryReport.substring(0, 2000)}`,
-    agoItemResult.content
-      ? `ARCGIS ONLINE SEARCH RAW:\n${agoItemResult.content.substring(0,1000)}`
-      : '',
-  ].filter(Boolean).join('\n\n');
-
-  const synthSysPrompt = `GIS specialist for CivilGrid. Synthesize evidence into JSON.
-
-${countyKnowledge ? `PRIORITY: ${countyKnowledge}\nSearch this server specifically for ${muni} utility layers — water mains, sewer mains, stormwater. This is a verified source.\n` : ''}HARDCODED COUNTY SERVER: If listed in evidence, search it using web_search to find utility layers for ${muni}.
-
-PRE-ENUMERATED LAYERS: Copy any pre-enumerated AGO layer URLs directly into water/storm/sewer arrays.
-
-CORS-BLOCKED ORGS: Search "{orgId} arcgis water sewer stormwater services" for any blocked org IDs.
-
-Do at least 3 gap-fill searches for contacts and missing data.
-
-Return ONLY JSON starting with { ending with }:
-{"municipality":"","county":"","state":"","portalUrl":null,"portalType":"ArcGIS Hub/Open Data/REST Service/None","dataType":"REST Service/SHP/GDB/PDF Only/None","hasRecycledWater":false,"water":{"layers":[{"name":"","layerId":"0","geometry":"Point/Line/Polygon","url":"","features":[],"is403":false}],"gaps":[],"pdfMaps":[]},"storm":{"layers":[],"gaps":[],"pdfMaps":[]},"sewer":{"layers":[],"gaps":[],"pdfMaps":[]},"recycledWater":{"layers":[],"gaps":[],"pdfMaps":[]},"contacts":[{"tier":1,"name":"","role":"GIS Administrator","email":"","phone":null},{"tier":2,"name":"","role":"Water/Sewer Superintendent","email":"","phone":null},{"tier":3,"name":"","role":"Town Clerk","email":"","phone":null},{"tier":4,"name":null,"role":"General Contact","email":"","phone":null}],"suggestedStatus":"Data Found, Loading in Progress/Data Not Found, Outreach in Progress/Completed, No GIS Data","emailGIS":"","emailUtility":"","researchNotes":""}
-
-Classify layers by name keyword:
-WATER → Valve,Hydrant,Meter,Main,Water (not storm/sewer)
-STORM → Storm,Drain,Inlet,Outfall,Channel,Ditch,Culvert,Catch Basin
-SEWER → Sewer,Manhole,Lift Station,Force Main,Gravity Main,Clean Out,Sanitary,Wastewater
-Self-hosted URL: https://gis.county.gov/arcgis/rest/services/Utilities/Water/MapServer/3
-AGO URL: https://services.arcgis.com/{orgId}/ArcGIS/rest/services/{Name}/FeatureServer/{id}
-Contacts: confirmed real only. emailGIS+emailUtility: under 80 words, sign: ${sender.sig}
-suggestedStatus: "Data Found, Loading in Progress" if layers; "Data Not Found, Outreach in Progress" if contact but no layers; "Completed, No GIS Data" if neither.`;
-
-  const synthUserMsg = `${evidenceBlock}\n\nSynthesize into JSON. Copy all pre-enumerated AGO layers into the right utility categories. Search for contacts and any CORS-blocked org data.`;
-
-  pip(3,'done'); pip(4,'active');
-  const { text: synthText, searchCount: synthSearches } = await claudeCall(
-    [{ role:'user', content: synthUserMsg }],
-    synthSysPrompt, log, S
-  );
-  pip(4,'done'); pip(5,'active');
-  log(`  Synthesis done: ${synthSearches} gap-fill searches`);
-
-  // ── PHASE 5: Parse with recovery ─────────────────────────────────────────
-  log('📋 Parsing result...');
-  let parsed;
-  try {
-    parsed = parseJSON(synthText);
-    log(`✅ Parsed OK: ${Object.keys(parsed).length} fields`, 'success');
-  } catch(e) {
-    log(`⚠ Parse failed: ${e.message} — recovering...`, 'warn');
-    try {
-      const fixResp = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-        body: JSON.stringify({
-          model:'claude-sonnet-4-6', max_tokens:6000,
-          system:'Fix the malformed JSON. Return ONLY valid JSON starting with { ending with }. No explanation.',
-          messages:[{ role:'user', content:`Fix this JSON:\n\n${synthText.substring(0,5000)}` }]
-        })
-      });
-      const fd = await fixResp.json();
-      const fixText = (fd.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-      parsed = parseJSON(fixText);
-      log('✅ Recovery OK', 'success');
-    } catch(e2) {
-      log(`❌ Recovery failed — returning partial`, 'error');
-      parsed = {
-        municipality:muni, county, state:st,
-        portalUrl:null, portalType:'None',
-        water:{layers:[],gaps:[]}, storm:{layers:[],gaps:[]},
-        sewer:{layers:[],gaps:[]}, contacts:[],
-        emailGIS:'', emailUtility:'',
-        researchNotes:`${S.count} searches run. Parse error: ${e2.message}. Preview: ${synthText.substring(0,600)}`
-      };
-    }
-  }
-
-  pip(5,'done'); pip(6,'done'); pip(7,'done');
-  const totalLayers = (parsed.water?.layers?.length||0)+(parsed.storm?.layers?.length||0)+(parsed.sewer?.layers?.length||0);
-  log(`🏁 Done: ${totalLayers} layers · ${S.count} searches · ${allOrgIds.length} AGO org(s) · ${agoEnumeratedLayers.length} layers pre-enumerated`, totalLayers>0?'success':'warn');
-  parsed.researchNotes = (parsed.researchNotes||'') + `\n[${S.count} searches, ${allOrgIds.length} AGO org IDs (${allOrgIds.join(',')||'none'}), ${agoEnumeratedLayers.length} layers pre-enumerated from AGO, ${deepProbes.length} self-hosted layer lists]`;
-  return parsed;
+  Object.values(existing).forEach(el=>el.remove());
+  area.appendChild(frag);
 }
 
-// ─── RENDER STATES ────────────────────────────────────────────────────────────
-function showEmptyState() {
-  document.getElementById('main-content').innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">🛰</div>
-      <div class="empty-title">No Agency Selected</div>
-      <div class="empty-sub">Enter a municipality above or upload a CSV, then click Research to run the full 8-step GIS intelligence workflow with live web search.</div>
-    </div>`;
+function getCardMeta(a){
+  if(!a.result) return a.status===S.RUNNING?'Researching…':a.status===S.ERROR?'Error — expand for details':'Pending';
+  const r=a.result;
+  const total=(r.water||[]).length+(r.sewer||[]).length+(r.storm||[]).length;
+  return `${total} layer${total!==1?'s':''} · ${(r.gaps||[]).length} gap${(r.gaps||[]).length!==1?'s':''} · ${(r.contacts||[]).length} contact${(r.contacts||[]).length!==1?'s':''}`;
 }
 
-function showResearchingState(idx) {
-  const a = agencies[idx];
-  document.getElementById('main-content').innerHTML = `
-    <div class="agency-header-card">
+function buildCard(a){
+  return `
+    <div class="chead" onclick="toggleCard(this)">
+      <div class="ctitle">
+        <h3>${esc(a.muni)}${a.county?`<span style="color:#94a3b8;font-weight:400">, ${esc(a.county)}</span>`:''}${a.state?`<span style="color:#64748b;font-weight:400"> ${esc(a.state)}</span>`:''}</h3>
+        <div class="cmeta">${getCardMeta(a)}</div>
+      </div>
+      <div class="cactions">
+        <span class="qbadge b-${a.status}">${bl(a.status)}</span>
+        <span class="chev">▾</span>
+      </div>
+    </div>
+    <div class="cbody">${buildBody(a)}</div>`;
+}
+
+function buildBody(a){
+  if(a.status===S.PENDING) return `<div class="rph">Waiting in queue</div>`;
+  if(a.status===S.RUNNING) return `<div class="rph"><div class="spin"></div> Searching REST services, open data portals, ArcGIS Online, state clearinghouses, and contacts… (~30–60 sec)</div>`;
+  if(a.status===S.ERROR)   return `<div class="rph" style="color:#f87171">⚠ ${esc(a.error||'Unknown error')}</div><div class="rph"><button class="btn btn-ghost" onclick="requeue('${a.id}')">↺ Try Again</button></div>`;
+  if(!a.result) return `<div class="rph">No data</div>`;
+
+  const r=a.result;
+  let h='';
+
+  if(r.utility_structure){
+    h+=`<div style="font-size:11px;color:#64748b;margin-bottom:12px;padding:7px 10px;background:#1e2330;border-radius:5px">ℹ️ ${esc(r.utility_structure)}</div>`;
+  }
+
+  h += buildLayersSec('WATER',   r.water||[],  'water');
+  h += buildLayersSec('SEWER',   r.sewer||[],  'sewer');
+  h += buildLayersSec('STORM',   r.storm||[],  'storm');
+
+  if((r.gaps||[]).length){
+    h+=`<div class="sec"><div class="stl">⚠ Gaps</div><div class="glist">${(r.gaps||[]).map(g=>`<div class="gitem">${esc(g)}</div>`).join('')}</div></div>`;
+  }
+
+  if((r.contacts||[]).length){
+    h+=`<div class="sec"><div class="stl">Contacts</div>
+    <table class="ctable"><tr><th>T</th><th>Role</th><th>Name</th><th>Email / Phone</th></tr>
+    ${(r.contacts||[]).map(c=>`<tr>
+      <td><span class="tbadge">${c.priority||'?'}</span></td>
+      <td>${esc(c.role||'')}</td>
+      <td>${esc(c.name||'—')}</td>
+      <td>${c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:''}${c.email&&c.phone?'<br>':''}${c.phone?esc(c.phone):''}</td>
+    </tr>`).join('')}
+    </table></div>`;
+  }
+
+  const emails = r.emails||{};
+  const eid = '_'+Math.random().toString(36).slice(2,7);
+  if(emails.gis||emails.utility){
+    h+=`<div class="sec"><div class="stl">Email Templates</div>`;
+    if(emails.gis)     h+=buildEmailBlock(emails.gis,     'GIS Admin',    eid+'g', a);
+    if(emails.utility) h+=buildEmailBlock(emails.utility,  'Water / Public Works', eid+'u', a);
+    h+=`</div>`;
+  }
+
+  if(r.notes){
+    h+=`<div class="sec"><div class="stl">Research Notes</div><div class="nbox">${esc(r.notes)}</div></div>`;
+  }
+
+  if((r.sources||[]).length){
+    h+=`<div class="sec"><div class="stl">Sources Checked</div><div class="slist">${(r.sources||[]).map(s=>`<div class="srow"><a href="${esc(s.url||'#')}" target="_blank" rel="noopener">${esc(s.label||s.url||'')}</a></div>`).join('')}</div></div>`;
+  }
+
+  const ts = a.researchedAt ? new Date(a.researchedAt).toLocaleString() : '';
+  if(ts) h+=`<div style="font-size:10px;color:#4a5568;margin-top:4px">Researched: ${ts}</div>`;
+
+  return h || '<div class="rph">No data found</div>';
+}
+
+function buildLayersSec(title, layers, type){
+  if(!layers.length) return '';
+  return `<div class="sec">
+    <div class="stl"><span class="utag u-${type}">${title}</span>${layers.length} layer${layers.length!==1?'s':''}</div>
+    <table class="ltable">
+      <tr><th>Name</th><th>REST URL</th><th>Format</th><th>Features</th><th>Conf</th></tr>
+      ${layers.map(l=>`<tr>
+        <td style="font-weight:500;white-space:nowrap">${esc(l.name||'')}</td>
+        <td class="ucell">${l.url?`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.url)}</a>`:'<span style="color:#4a5568">—</span>'}</td>
+        <td style="white-space:nowrap;color:#94a3b8">${esc(l.format||'')}</td>
+        <td style="color:#64748b;font-size:10px">${esc((l.features||[]).join(', '))||'—'}</td>
+        <td class="c${(l.confidence||'l').charAt(0)}">${(l.confidence||'?').toUpperCase()}</td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+function buildEmailBlock(email, label, eid, a){
+  const s = getSender();
+  const to = email.to||'';
+  const subj = email.subject||'';
+  const body = email.body||'';
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1${to?'&to='+encodeURIComponent(to):''}${subj?'&su='+encodeURIComponent(subj):''}${body?'&body='+encodeURIComponent(body):''}${s.email?'&from='+encodeURIComponent(s.email):''}`;
+  const mailtoUrl = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+  return `<div class="eblock">
+    <div class="ehead">
       <div>
-        <div class="agency-header-name">${a.name}</div>
-        <div class="agency-header-meta">${a.county ? a.county + ' County · ' : ''}${a.state}</div>
+        <div class="eto">To: <strong>${to?esc(to):'<span style="color:#f87171">no email found</span>'}</strong></div>
+        <div class="esubj">${esc(subj)}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-        <div class="spinner"></div>
-        <span style="font-family:var(--font-mono);font-size:11px;color:var(--accent2);">🌐 LIVE SEARCHING</span>
-        <button onclick="cancelResearch(${idx})" style="margin-left:8px;background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);color:var(--error);font-family:var(--font-mono);font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;">✕ Cancel</button>
-      </div>
+      <div class="elabel">${esc(label)}</div>
     </div>
-    <div class="step-indicators">
-      ${['1·Probe+Discovery','2·(parallel)','3·Deep Dive URLs','4·Synthesis+Contacts','5·Parse','6·Done','7·','8·'].map((s,i) => `<div class="step-pip" id="step-${i}">${s}</div>`).join('')}
+    <div class="ebody" id="eb_${eid}">${esc(body)}</div>
+    <div class="ebtns">
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="copyText('eb_${eid}',this)">Copy</button>
+      <a class="btn btn-ghost" style="font-size:10px;padding:4px 10px" href="${mailtoUrl}">Open in Mail</a>
+      <a class="btn btn-primary" style="font-size:10px;padding:4px 10px" href="${gmailUrl}" target="_blank" rel="noopener">Open in Gmail →</a>
     </div>
-    <div class="progress-log" id="research-log">
-      <div class="log-line"><span class="log-text" style="color:var(--accent2);">🚀 Initializing agentic research engine...</span></div>
-    </div>`;
+  </div>`;
 }
 
-function renderContent() {
-  const idx = activeAgency;
-  if (idx === null || !results[idx]) {
-    if (agencies[idx]?.status === 'researching') return;
-    showEmptyState();
-    return;
+// ── HELPERS ────────────────────────────────────────────────────────
+function toggleCard(header){
+  const body=header.nextElementSibling;
+  const chev=header.querySelector('.chev');
+  const open=body.classList.toggle('open');
+  chev.classList.toggle('open',open);
+}
+
+function scrollTo(id){
+  const el=document.querySelector(`[data-cid="${id}"]`);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  const body=el.querySelector('.cbody');
+  if(body&&!body.classList.contains('open')){
+    body.classList.add('open');
+    const chev=el.querySelector('.chev');
+    if(chev) chev.classList.add('open');
   }
-  const r = results[idx];
-  const a = agencies[idx];
-
-  switch(activeTab) {
-    case 'overview': renderOverview(r, a, idx); break;
-    case 'gis': renderGIS(r, a); break;
-    case 'contacts': renderContacts(r, a); break;
-    case 'emails': renderEmails(r, a); break;
-  }
+  el.style.outline='2px solid #38bdf8';
+  setTimeout(()=>el.style.outline='',2500);
 }
 
-// ─── OVERVIEW TAB ─────────────────────────────────────────────────────────────
-function renderOverview(r, a, idx) {
-  const wLayers = r.water?.layers?.length || 0;
-  const sLayers = r.storm?.layers?.length || 0;
-  const eLayers = r.sewer?.layers?.length || 0;
-  const rwLayers = r.recycledWater?.layers?.length || 0;
-  const totalLayers = wLayers + sLayers + eLayers + rwLayers;
-  const wGaps = r.water?.gaps?.length || 0;
-  const sGaps = r.storm?.gaps?.length || 0;
-  const eGaps = r.sewer?.gaps?.length || 0;
-  const contacts = r.contacts || [];
-  const tier1 = contacts.find(c => c.tier === 1);
-  const allPdfs = [...(r.water?.pdfMaps||[]), ...(r.storm?.pdfMaps||[]), ...(r.sewer?.pdfMaps||[])];
-  const all403 = [...(r.water?.layers||[]), ...(r.storm?.layers||[]), ...(r.sewer?.layers||[])].filter(l => l.is403);
-
-  const statusColors = {
-    'Data Found, Loading in Progress': 'var(--accent)',
-    'Data Not Found, Outreach in Progress': 'var(--warning)',
-    'Completed, No GIS Data': 'var(--text-dimmer)',
-    'Completed, Agency Unresponsive': 'var(--text-dimmer)',
-    'Completed, Agency Not Sharing': 'var(--error)',
-  };
-  const statusColor = statusColors[r.suggestedStatus] || 'var(--text-dim)';
-
-  document.getElementById('main-content').innerHTML = `
-    <div class="agency-header-card">
-      <div>
-        <div class="agency-header-name">${r.municipality || a.name}</div>
-        <div class="agency-header-meta">${r.county || a.county} County · ${r.state || a.state} · ${r.portalType || 'No GIS Portal Found'}${r.dataType ? ' · ' + r.dataType : ''}</div>
-        ${r.portalUrl ? `<a href="${r.portalUrl}" target="_blank" style="font-family:var(--font-mono);font-size:10px;color:var(--accent2);">${r.portalUrl}</a>` : ''}
-        ${r.suggestedStatus ? `<div style="margin-top:6px;font-family:var(--font-mono);font-size:10px;color:${statusColor}">▸ ${r.suggestedStatus}</div>` : ''}
-      </div>
-      <div class="agency-score">
-        <div class="score-num">${totalLayers}</div>
-        <div class="score-label">Layers Found</div>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:${r.hasRecycledWater ? '1fr 1fr 1fr 1fr' : '1fr 1fr 1fr'};gap:10px;margin-bottom:16px;">
-      ${[
-        {label:'WATER', color:'water', layers: wLayers, gaps: wGaps},
-        {label:'STORM', color:'storm', layers: sLayers, gaps: sGaps},
-        {label:'SEWER', color:'sewer', layers: eLayers, gaps: eGaps},
-        ...(r.hasRecycledWater ? [{label:'RECYCLED', color:'water', layers: rwLayers, gaps: r.recycledWater?.gaps?.length||0}] : [])
-      ].map(u => `
-        <div class="utility-section" style="margin:0">
-          <div class="utility-header" style="padding:10px 12px">
-            <div class="utility-icon ${u.color}">${u.label[0]}</div>
-            <div><div class="utility-title ${u.color}" style="font-size:10px">${u.label}</div></div>
-          </div>
-          <div style="padding:10px 12px">
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:11px;color:var(--text-dim)">Layers</span>
-              <span style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">${u.layers}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between">
-              <span style="font-size:11px;color:var(--text-dim)">Gaps</span>
-              <span style="font-family:var(--font-mono);font-size:12px;color:${u.gaps > 0 ? 'var(--error)' : 'var(--accent)'}">${u.gaps}</span>
-            </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-
-    ${(all403.length > 0 || allPdfs.length > 0) ? `
-    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-      ${all403.length > 0 ? `
-        <div style="background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.3);border-radius:8px;padding:10px 14px;flex:1">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--warning);letter-spacing:0.1em;margin-bottom:6px;">⚠ 403 / PROTECTED LAYERS</div>
-          ${all403.map(l => `<div style="font-size:11px;color:var(--text-dim);margin-bottom:3px;">${l.name} — <a href="${l.url}" target="_blank" style="font-family:var(--font-mono);font-size:9px;color:var(--accent2);">${l.url}</a></div>`).join('')}
-        </div>` : ''}
-      ${allPdfs.length > 0 ? `
-        <div style="background:rgba(124,92,252,0.08);border:1px solid rgba(124,92,252,0.3);border-radius:8px;padding:10px 14px;flex:1">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--storm);letter-spacing:0.1em;margin-bottom:6px;">📄 PDF MAPS → DIGITIZATION</div>
-          ${allPdfs.map(p => `<div style="margin-bottom:3px;"><a href="${p}" target="_blank" style="font-family:var(--font-mono);font-size:9px;color:var(--accent2);">${p}</a></div>`).join('')}
-        </div>` : ''}
-    </div>` : ''}
-
-    <div style="margin-bottom:16px">
-      <div class="panel-label" style="margin-bottom:8px">TOP CONTACT</div>
-      ${tier1 ? `
-        <div class="contact-card" style="display:flex;align-items:center;gap:12px">
-          <div>
-            <div class="contact-tier t1">Tier 1 · GIS</div>
-            <div class="contact-name">${tier1.name || 'Unknown'}</div>
-            <div class="contact-role">${tier1.role}</div>
-          </div>
-          <div style="margin-left:auto;text-align:right">
-            ${tier1.email ? `<span class="contact-email">${tier1.email}</span>` : ''}
-            ${tier1.phone ? `<span class="contact-phone">${tier1.phone}</span>` : ''}
-          </div>
-        </div>` : `<div class="no-data">No Tier 1 GIS contact found — see Contacts tab for alternatives</div>`}
-    </div>
-
-    ${r.researchNotes ? `
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px">
-      <div class="panel-label" style="margin-bottom:6px">📋 Research Notes</div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${r.researchNotes}</div>
-    </div>` : ''}
-
-    <div class="panel-label" style="margin-bottom:8px">QUICK ACTIONS</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="switchTab('gis')">📡 View GIS Layers</button>
-      <button class="btn btn-ghost" onclick="switchTab('contacts')">👤 View Contacts</button>
-      <button class="btn btn-ghost" onclick="switchTab('emails')">✉ Email Templates</button>
-      ${tier1?.email ? `<button class="btn btn-primary" style="width:auto;padding:9px 16px" onclick="quickSend('${tier1.email}', ${idx})">⚡ Send GIS Email</button>` : ''}
-    </div>
-    <div style="margin-top:10px">
-      <button onclick="markNoGisData(${idx})" style="width:100%;background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.25);color:var(--error);font-family:var(--font-mono);font-size:10px;padding:8px;border-radius:6px;cursor:pointer;letter-spacing:0.05em;">
-        ✕ Mark as No GIS Data — Add to Send Outreach Queue
-      </button>
-    </div>
-  `;
-}
-
-// ─── GIS LAYERS TAB ───────────────────────────────────────────────────────────
-function renderGIS(r, a) {
-  const sections = [
-    { key: 'water', label: 'WATER', color: 'water' },
-    { key: 'storm', label: 'STORM', color: 'storm' },
-    { key: 'sewer', label: 'SEWER', color: 'sewer' },
-    ...(r.hasRecycledWater ? [{ key: 'recycledWater', label: 'RECYCLED WATER', color: 'water' }] : [])
-  ];
-
-  document.getElementById('main-content').innerHTML = sections.map(s => {
-    const data = r[s.key] || { layers: [], gaps: [], pdfMaps: [] };
-    return `
-      <div class="utility-section">
-        <div class="utility-header">
-          <div class="utility-icon ${s.color}">${s.label[0]}</div>
-          <div class="utility-title ${s.color}">${s.label} INFRASTRUCTURE</div>
-          <div class="utility-count">${data.layers?.length || 0} layers · ${data.gaps?.length || 0} gaps</div>
-        </div>
-        <div class="utility-body">
-          ${data.layers?.length ? `
-            <table class="layer-table">
-              <thead><tr>
-                <th>Layer Name</th><th>ID</th><th>Geometry</th><th>REST URL</th><th>Preview</th>
-              </tr></thead>
-              <tbody>
-                ${data.layers.map(l => `
-                  <tr style="${l.is403 ? 'opacity:0.7;background:rgba(255,179,71,0.05)' : ''}">
-                    <td>
-                      <div class="layer-name">${l.name}${l.is403 ? ' <span style="font-family:var(--font-mono);font-size:8px;color:var(--warning);border:1px solid rgba(255,179,71,0.4);padding:1px 4px;border-radius:3px;margin-left:4px;">403</span>' : ''}</div>
-                      ${l.features?.length ? `<div style="font-size:10px;color:var(--text-dimmer);margin-top:2px">${l.features.slice(0,4).join(', ')}${l.features.length > 4 ? '...' : ''}</div>` : ''}
-                    </td>
-                    <td><span class="layer-id">${l.layerId ?? '—'}</span></td>
-                    <td><span class="layer-geom">${l.geometry || '—'}</span></td>
-                    <td><div class="layer-url">${l.url ? `<a href="${l.url}" target="_blank">${l.url}</a>` : '—'}</div></td>
-                    <td>${l.url ? `<a href="https://www.arcgis.com/home/webmap/viewer.html?url=${encodeURIComponent(l.url)}&source=sd" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,121,193,0.15);border:1px solid rgba(0,121,193,0.4);color:#4db8ff;font-family:var(--font-mono);font-size:9px;padding:4px 8px;border-radius:4px;white-space:nowrap;text-decoration:none;">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                      ArcGIS
-                    </a>` : '—'}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          ` : `<div class="no-data">No ${s.label.toLowerCase()} layers found in public REST services</div>`}
-
-          ${data.pdfMaps?.length ? `
-            <div style="margin-top:10px;padding:8px 10px;background:rgba(124,92,252,0.06);border:1px solid rgba(124,92,252,0.2);border-radius:6px;">
-              <div style="font-family:var(--font-mono);font-size:9px;color:var(--storm);margin-bottom:5px;letter-spacing:0.08em;">📄 PDF MAPS — SEND TO #DIGITIZATION</div>
-              ${data.pdfMaps.map(p => `<div style="margin-bottom:3px;"><a href="${p}" target="_blank" style="font-family:var(--font-mono);font-size:9px;color:var(--accent2);">${p}</a></div>`).join('')}
-            </div>` : ''}
-
-          ${data.gaps?.length ? `
-            <div class="gaps-section">
-              <div class="gaps-label">⚠ Feature Gaps (not found in public data)</div>
-              <div class="gaps-list">${data.gaps.map(g => `<span class="gap-badge">${g}</span>`).join('')}</div>
-            </div>
-          ` : `<div style="margin-top:8px"><span class="found-badge">✓ All features accounted for</span></div>`}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ─── CONTACTS TAB ─────────────────────────────────────────────────────────────
-function renderContacts(r, a) {
-  const contacts = r.contacts || [];
-  const tierMap = { 1: {label:'Tier 1 · GIS Admin', cls:'t1'}, 2: {label:'Tier 2 · Utility Sup.', cls:'t2'}, 3: {label:'Tier 3 · Town Clerk', cls:'t3'}, 4: {label:'Tier 4 · General', cls:'t4'} };
-
-  document.getElementById('main-content').innerHTML = `
-    <div class="panel-label" style="margin-bottom:12px">CONTACT DIRECTORY — ${r.municipality || a.name}</div>
-    ${contacts.length ? `
-      <div class="contacts-grid">
-        ${contacts.map(c => `
-          <div class="contact-card">
-            <div class="contact-tier ${tierMap[c.tier]?.cls || ''}">${tierMap[c.tier]?.label || 'Contact'}</div>
-            <div class="contact-name">${c.name || 'Unknown'}</div>
-            <div class="contact-role">${c.role || '—'}</div>
-            ${c.email ? `<a class="contact-email" href="mailto:${c.email}">${c.email}</a>` : ''}
-            ${c.phone ? `<div class="contact-phone">${c.phone}${c.ext ? ' ext. ' + c.ext : ''}</div>` : ''}
-            ${!c.email && !c.phone ? `<div class="contact-none">No direct contact found</div>` : ''}
-          </div>
-        `).join('')}
-      </div>
-    ` : `<div class="no-data">No contacts found. Try the Emails tab for outreach templates.</div>`}
-  `;
-}
-
-// ─── EMAILS TAB ───────────────────────────────────────────────────────────────
-function renderEmails(r, a) {
-  document.getElementById('main-content').innerHTML = `
-    <div class="panel-label" style="margin-bottom:12px">EMAIL TEMPLATES — ${r.municipality || a.name}</div>
-
-    ${r.emailGIS ? `
-      <div class="email-card">
-        <div class="email-header">
-          <div>
-            <div class="email-type">Template 1</div>
-            <div class="email-audience">→ GIS Team / Technical Audience</div>
-          </div>
-          <button class="copy-btn" onclick="copyText('email-gis-body')">Copy</button>
-        </div>
-        <div class="email-body" id="email-gis-body">${r.emailGIS}</div>
-      </div>
-    ` : ''}
-
-    ${r.emailUtility ? `
-      <div class="email-card">
-        <div class="email-header">
-          <div>
-            <div class="email-type">Template 2</div>
-            <div class="email-audience">→ Utility Supervisor / Non-technical</div>
-          </div>
-          <button class="copy-btn" onclick="copyText('email-util-body')">Copy</button>
-        </div>
-        <div class="email-body" id="email-util-body">${r.emailUtility}</div>
-      </div>
-    ` : '<div class="no-data">Email templates not generated. Run research first.</div>'}
-  `;
-}
-
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`).classList.add('active');
-  if (tab === 'send') { renderSendTab(); return; }
-  if (tab === 'results') { renderResultsTab(); return; }
-  if (activeAgency !== null && results[activeAgency]) renderContent();
-}
-
-// ─── ALL RESULTS TAB ─────────────────────────────────────────────────────────
-let resultsFilter = 'all';
-
-function renderResultsTab() {
-  const content = document.getElementById('main-content');
-
-  if (agencies.length === 0) {
-    content.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📊</div>
-        <div class="empty-title">No Agencies Loaded</div>
-        <div class="empty-sub">Upload a CSV or add agencies, then run Research All to see compiled results here.</div>
-      </div>`;
-    return;
-  }
-
-  const rows = agencies.map((a, i) => ({ a, i, r: results[i] }));
-  const done = rows.filter(({ r }) => r && !r.error);
-  const withData = done.filter(({ r }) => (r.water?.layers?.length||0)+(r.storm?.layers?.length||0)+(r.sewer?.layers?.length||0) > 0);
-  const noData = done.filter(({ r }) => (r.water?.layers?.length||0)+(r.storm?.layers?.length||0)+(r.sewer?.layers?.length||0) === 0);
-  const pending = rows.filter(({ a }) => a.status === 'pending' || a.status === 'researching');
-  const errors = rows.filter(({ r }) => r?.error);
-
-  let visible = rows;
-  if (resultsFilter === 'found') visible = withData;
-  else if (resultsFilter === 'not-found') visible = noData;
-  else if (resultsFilter === 'pending') visible = [...pending, ...errors];
-
-  content.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-      <button class="results-filter-btn ${resultsFilter==='all'?'active':''}" onclick="setResultsFilter('all')">All (${rows.length})</button>
-      <button class="results-filter-btn ${resultsFilter==='found'?'active':''}" onclick="setResultsFilter('found')" style="color:var(--accent)">✓ Data Found (${withData.length})</button>
-      <button class="results-filter-btn ${resultsFilter==='not-found'?'active':''}" onclick="setResultsFilter('not-found')" style="color:var(--warning)">⚠ No Data (${noData.length})</button>
-      <button class="results-filter-btn ${resultsFilter==='pending'?'active':''}" onclick="setResultsFilter('pending')">⏳ Pending/Error (${pending.length+errors.length})</button>
-      <span style="margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dimmer)">${done.length} researched · ${rows.length-done.length} remaining</span>
-    </div>
-
-    ${visible.length === 0
-      ? `<div style="text-align:center;padding:40px;color:var(--text-dimmer);font-size:12px;">No agencies match this filter.</div>`
-      : `<table class="all-results-table">
-      <thead>
-        <tr>
-          <th style="width:24px">#</th>
-          <th>Agency</th>
-          <th>Status</th>
-          <th style="text-align:center" title="Water layers">W</th>
-          <th style="text-align:center" title="Storm layers">ST</th>
-          <th style="text-align:center" title="Sewer layers">SE</th>
-          <th>Portal</th>
-          <th>Best Contact</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${visible.map(({ a, i, r }) => {
-          const isError = r?.error;
-          const isDone = r && !r.error;
-          const wCount = r?.water?.layers?.length || 0;
-          const sCount = r?.storm?.layers?.length || 0;
-          const eCount = r?.sewer?.layers?.length || 0;
-          const total = wCount + sCount + eCount;
-          const hasData = total > 0;
-          const bestContact = (r?.contacts||[]).find(c => c.email) || null;
-
-          let statusClass = 'pending', statusText = 'Pending';
-          if (a.status === 'researching') { statusClass = 'pending'; statusText = '⟳ Searching...'; }
-          else if (isError) { statusClass = 'error'; statusText = '✗ Error'; }
-          else if (isDone && hasData) { statusClass = 'found'; statusText = '✓ Data Found'; }
-          else if (isDone) { statusClass = 'not-found'; statusText = '⚠ No Data'; }
-
-          let portalDisplay = '—';
-          if (r?.portalUrl) {
-            try {
-              const host = new URL(r.portalUrl).hostname.replace('www.','');
-              portalDisplay = `<a href="${r.portalUrl}" target="_blank" style="font-family:var(--font-mono);font-size:9px;color:var(--accent2);text-decoration:none;" title="${r.portalUrl}">${host}</a>`;
-            } catch(e) { portalDisplay = `<span style="font-size:9px;color:var(--accent2)">${r.portalUrl.substring(0,30)}...</span>`; }
-          } else if (isDone) {
-            portalDisplay = `<span style="font-size:10px;color:var(--text-dimmer)">None</span>`;
-          }
-
-          const rowBg = hasData ? 'row-has-data' : isError ? 'row-error' : 'row-no-data';
-
-          return `<tr class="${rowBg}">
-            <td><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dimmer)">${i+1}</span></td>
-            <td>
-              <div style="font-weight:600;color:var(--text)">${r?.municipality||a.name}</div>
-              <div style="font-size:10px;color:var(--text-dimmer);font-family:var(--font-mono);margin-top:1px">${a.county?a.county+' Co · ':''}${a.state}</div>
-            </td>
-            <td><span class="rt-status ${statusClass}">${statusText}</span></td>
-            <td style="text-align:center"><span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:${wCount>0?'var(--accent)':'var(--text-dimmer)'}">${isDone?wCount:'—'}</span></td>
-            <td style="text-align:center"><span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:${sCount>0?'var(--accent)':'var(--text-dimmer)'}">${isDone?sCount:'—'}</span></td>
-            <td style="text-align:center"><span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:${eCount>0?'var(--accent)':'var(--text-dimmer)'}">${isDone?eCount:'—'}</span></td>
-            <td>${portalDisplay}</td>
-            <td>
-              ${bestContact
-                ? `<div style="font-size:11px;color:var(--text)">${bestContact.name||bestContact.role||'Contact'}</div>
-                   <span style="font-family:var(--font-mono);font-size:9px;color:var(--accent2)">${bestContact.email}</span>`
-                : isDone ? `<span style="font-size:10px;color:var(--text-dimmer)">Not found</span>` : '—'}
-            </td>
-            <td>
-              <div style="display:flex;gap:4px">
-                <button class="rt-jump-btn" onclick="jumpToAgency(${i})">View →</button>
-                ${(a.status==='pending'||isError) ? `<button class="rt-jump-btn" onclick="runResearch(${i})" style="color:var(--accent2);border-color:rgba(0,184,255,0.3)">↺ Run</button>` : ''}
-              </div>
-            </td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>`}
-  `;
-}
-
-function setResultsFilter(filter) {
-  resultsFilter = filter;
-  renderResultsTab();
-}
-
-function jumpToAgency(i) {
-  activeAgency = i;
-  activeTab = 'overview';
-  renderAgencyList();
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-overview').classList.add('active');
-  renderContent();
-  const items = document.getElementById('agency-list').children;
-  if (items[i]) items[i].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function copyText(elId) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    const btn = el.parentElement.querySelector('.copy-btn');
-    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); }
+function copyText(id, btn){
+  const text=document.getElementById(id)?.textContent||'';
+  navigator.clipboard.writeText(text).then(()=>{
+    const orig=btn.textContent; btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent=orig,2000);
   });
 }
 
-// ─── CSV EXPORT ───────────────────────────────────────────────────────────────
-function updateExportButton() {
-  const hasResults = Object.keys(results).some(k => results[k] && !results[k].error);
-  document.getElementById('btn-export').disabled = !hasResults;
+function bl(s){ return {pending:'PENDING',running:'RUNNING',found:'FOUND',partial:'PARTIAL',notfound:'NOT FOUND',error:'ERROR'}[s]||s.toUpperCase(); }
+
+function esc(s){
+  if(s==null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function escCsv(val) {
-  if (val == null) return '';
-  const s = String(val);
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
+function toast(msg, isErr=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='show'+(isErr?' err':'');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.className='',3000);
 }
 
-function exportCSV() {
-  const rows = [];
-  rows.push([
-    'Agency','County','State','Status',
-    'Portal URL','Portal Type',
-    'Water Layers Found','Water Layer Names','Water Layer URLs','Water Gaps',
-    'Storm Layers Found','Storm Layer Names','Storm Layer URLs','Storm Gaps',
-    'Sewer Layers Found','Sewer Layer Names','Sewer Layer URLs','Sewer Gaps',
-    'Tier1 Name','Tier1 Role','Tier1 Email','Tier1 Phone',
-    'Tier2 Name','Tier2 Role','Tier2 Email','Tier2 Phone',
-    'Tier3 Name','Tier3 Role','Tier3 Email','Tier3 Phone',
-    'Research Notes','Email GIS Template','Email Utility Template'
-  ].map(escCsv).join(','));
+// ── CLEAR ──────────────────────────────────────────────────────────
+function confirmClear(){ document.getElementById('clearModal').classList.add('open'); }
+function closeClear(){ document.getElementById('clearModal').classList.remove('open'); }
+function doClear(){ agencies=[]; localStorage.removeItem('cg2_agencies'); closeClear(); renderAll(); toast('Cleared'); }
 
-  agencies.forEach((a, i) => {
-    const r = results[i];
-    if (!r) {
-      rows.push([a.name, a.county, a.state, a.status].map(escCsv).join(','));
-      return;
-    }
-    if (r.error) {
-      rows.push([a.name, a.county, a.state, 'error', '', '', '', '', '', r.error].map(escCsv).join(','));
-      return;
-    }
+// ── INIT ───────────────────────────────────────────────────────────
+loadData();
+renderAll();
 
-    const layerNames = (util) => (r[util]?.layers || []).map(l => l.name).join(' | ');
-    const layerUrls  = (util) => (r[util]?.layers || []).map(l => l.url || '').join(' | ');
-    const gaps       = (util) => (r[util]?.gaps || []).join(' | ');
-    const contact    = (tier) => (r.contacts || []).find(c => c.tier === tier) || {};
-
-    const c1 = contact(1), c2 = contact(2), c3 = contact(3);
-
-    rows.push([
-      r.municipality || a.name, r.county || a.county, r.state || a.state, 'done',
-      r.portalUrl || '', r.portalType || '',
-      r.water?.layers?.length || 0, layerNames('water'), layerUrls('water'), gaps('water'),
-      r.storm?.layers?.length || 0, layerNames('storm'), layerUrls('storm'), gaps('storm'),
-      r.sewer?.layers?.length || 0, layerNames('sewer'), layerUrls('sewer'), gaps('sewer'),
-      c1.name||'', c1.role||'', c1.email||'', c1.phone||'',
-      c2.name||'', c2.role||'', c2.email||'', c2.phone||'',
-      c3.name||'', c3.role||'', c3.email||'', c3.phone||'',
-      r.researchNotes || '',
-      r.emailGIS || '', r.emailUtility || ''
-    ].map(escCsv).join(','));
-  });
-
-  const csv = rows.join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const dlAnchor = document.createElement('a');
-  dlAnchor.href = url;
-  dlAnchor.download = `civilgrid_gis_research_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(dlAnchor);
-  dlAnchor.click();
-  document.body.removeChild(dlAnchor);
-  URL.revokeObjectURL(url);
+if(location.protocol==='file:'){
+  document.getElementById('emptyState').innerHTML=`<div class="eicon">⚠️</div>
+    <p><strong>Cannot run from a local file.</strong><br><br>
+    Push <code>index.html</code> to your repo and open it at<br>
+    <code>https://kpamperin.github.io/gis-tool/</code><br><br>
+    Or run <code>npx serve .</code> in the repo folder and open localhost.</p>`;
+  document.getElementById('emptyState').style.display='flex';
 }
-
-async function quickSend(email, idx) {
-  const r = results[idx];
-  if (!r?.emailGIS) return;
-  alert(`This would open Gmail to send to: ${email}\n\nUse the "⚡ Send Outreach" tab after connecting Gmail.`);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initGoogleAuth, 1000);
-});
 </script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
