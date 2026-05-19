@@ -1484,6 +1484,66 @@ const ARCGIS_URL_PATTERNS = (county, state) => {
   ];
 };
 
+// ── STATE GIS CLEARINGHOUSE URLS — all 50 states ─────────────────────────────
+// Primary state-level ArcGIS REST endpoints. Probed for every search.
+const STATE_GIS_SERVERS = {
+  'AL': ['https://services.arcgis.com/4f2cMXSB3aBu9pVH/arcgis/rest/services/?f=pjson','https://gis.alabamagis.gov/arcgis/rest/services/?f=pjson'],
+  'AK': ['https://maps.dnr.alaska.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/WzFsmainVTuD5KML/arcgis/rest/services/?f=pjson'],
+  'AZ': ['https://gis.azwater.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/wdnDmEGsEBnJpNOh/arcgis/rest/services/?f=pjson'],
+  'AR': ['https://gis.arkansaswater.org/arcgis/rest/services/?f=pjson','https://mapping.ar.gov/arcgis/rest/services/?f=pjson'],
+  'CA': ['https://gis.water.ca.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/?f=pjson'],
+  'CO': ['https://gis.colorado.gov/public/rest/services/?f=pjson','https://services3.arcgis.com/66aUo8zsujfVXRIT/arcgis/rest/services/?f=pjson'],
+  'CT': ['https://gis.ct.gov/hosting/rest/services/?f=pjson','https://services1.arcgis.com/FjPcSmEFuDYlIdKC/arcgis/rest/services/?f=pjson'],
+  'DE': ['https://arcgis.its.delaware.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/amyvBUSSIooOakNV/arcgis/rest/services/?f=pjson'],
+  'FL': ['https://services1.arcgis.com/CY1LXxl9zlJeBuiB/arcgis/rest/services/?f=pjson','https://ca.dep.state.fl.us/arcgis/rest/services/?f=pjson'],
+  'GA': ['https://maps.itos.uga.edu/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/Ug5xGQbHsD8zuZzM/arcgis/rest/services/?f=pjson'],
+  'HI': ['https://geodata.hawaii.gov/arcgis/rest/services/?f=pjson','https://services.arcgis.com/pjdjiQ2MjQSMCnVI/arcgis/rest/services/?f=pjson'],
+  'ID': ['https://gis.idwr.idaho.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/qn1MHoKz3K3eBWHM/arcgis/rest/services/?f=pjson'],
+  'IL': ['https://gis.illinois.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/uUvqNr1kdjSRCLvQ/arcgis/rest/services/?f=pjson'],
+  'IN': ['https://gis.in.gov/arcgis/rest/services/?f=pjson','https://services.arcgis.com/XC3qHolBqNyvchFT/arcgis/rest/services/?f=pjson'],
+  'IA': ['https://gis.iowadot.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/ISZ0Dv6oy5x4RNZS/arcgis/rest/services/?f=pjson'],
+  'KS': ['https://services.kansasgis.org/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/2hHhHsUTgTkKvXqC/arcgis/rest/services/?f=pjson'],
+  'KY': ['https://kygisserver.ky.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/5mTbIhI6JCMdUHkd/arcgis/rest/services/?f=pjson'],
+  'LA': ['https://gis.ldh.la.gov/arcgis/rest/services/?f=pjson','https://services5.arcgis.com/O5K6bb5dZVZcTo5M/arcgis/rest/services/?f=pjson'],
+  'ME': ['https://arcgisserver.maine.gov/arcgis/rest/services/?f=pjson','https://gis2.maine.gov/arcgis/rest/services/?f=pjson'],
+  'MD': ['https://geodata.md.gov/imap/rest/services/?f=pjson','https://services1.arcgis.com/njFNhDsUCentVYJW/arcgis/rest/services/?f=pjson'],
+  'MA': ['https://gis-prod.digital.mass.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/hGdibHYSPO59RG1h/arcgis/rest/services/?f=pjson'],
+  'MI': ['https://gis.michigan.gov/arcgis/rest/services/?f=pjson','https://services3.arcgis.com/XBkSMdBAF19yPdaV/arcgis/rest/services/?f=pjson'],
+  'MN': ['https://resources.gisdata.mn.gov/pub/gdrs/data/pub/?f=pjson','https://services.arcgis.com/IQJG7HKMKrTMDhFh/arcgis/rest/services/?f=pjson'],
+  'MS': ['https://www.maris.state.ms.us/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/GE4Yv9OMnNJ6c8XK/arcgis/rest/services/?f=pjson'],
+  'MO': ['https://gis.mo.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/p9RcinEKtAWWAArx/arcgis/rest/services/?f=pjson'],
+  'MT': ['https://gis.mt.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/qe2ZCKhCPGsKVVqP/arcgis/rest/services/?f=pjson'],
+  'NE': ['https://gis.ne.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/Mln3QDMBGKE8TFuR/arcgis/rest/services/?f=pjson'],
+  'NV': ['https://gisdata.nv.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/?f=pjson'],
+  'NH': ['https://nhgeodata.unh.edu/nhgeodata/rest/services/?f=pjson','https://services1.arcgis.com/IXmb7aEPCKVhOdNc/arcgis/rest/services/?f=pjson'],
+  'NJ': ['https://gisdata.nj.gov/arcgis/rest/services/?f=pjson','https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/arcgis/rest/services/?f=pjson'],
+  'NM': ['https://rgis.unm.edu/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/qN3V93cYCBKPd8PN/arcgis/rest/services/?f=pjson'],
+  'NY': ['https://gisservices.its.ny.gov/arcgis/rest/services/?f=pjson','https://services6.arcgis.com/EbVsqCKVBzvURAdQ/arcgis/rest/services/?f=pjson'],
+  'NC': ['https://services.nconemap.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/YKiCFKSCFv3lIaAn/arcgis/rest/services/?f=pjson'],
+  'ND': ['https://gis.nd.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/zdGHAWLD5hjbqSfh/arcgis/rest/services/?f=pjson'],
+  'OH': ['https://gis.ohio.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/2iUE8l8JKrP2tygQ/arcgis/rest/services/?f=pjson'],
+  'OK': ['https://gis.owrb.ok.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/rKnFJCBRmVj54n1c/arcgis/rest/services/?f=pjson'],
+  'OR': ['https://gis.dogami.oregon.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/uUvqNr1kdjSRCLvQ/arcgis/rest/services/?f=pjson'],
+  'PA': ['https://gis.penndot.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/C5NJVzPpPxqKY08e/arcgis/rest/services/?f=pjson'],
+  'RI': ['https://www.rigis.org/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/?f=pjson'],
+  'SC': ['https://services.arcgis.com/4pBEVSIbBjqjHi2G/arcgis/rest/services/?f=pjson','https://gis1.dnr.sc.gov/arcgis/rest/services/?f=pjson'],
+  'SD': ['https://arcgis.sd.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/kWCXQAZuuCZmKCE0/arcgis/rest/services/?f=pjson'],
+  'TN': ['https://tnmap.tn.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/PlcPaDSFBnazBTSc/arcgis/rest/services/?f=pjson'],
+  'TX': ['https://services.arcgis.com/KTcxiTD9dsQw4r7Z/arcgis/rest/services/?f=pjson','https://txdot.maps.arcgis.com/arcgis/rest/services/?f=pjson'],
+  'UT': ['https://gis.utah.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/?f=pjson'],
+  'VT': ['https://maps.vermont.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/BkFxaEFNwHqX3tAw/arcgis/rest/services/?f=pjson'],
+  'VA': ['https://gismaps.vdem.virginia.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/?f=pjson'],
+  'WA': ['https://gis.dnr.wa.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/A51B3YBjjeAkotij/arcgis/rest/services/?f=pjson'],
+  'WV': ['https://gis.wv.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/wdnDmEGsEBnJpNOh/arcgis/rest/services/?f=pjson'],
+  'WI': ['https://dnrmaps.wi.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/ISZ0Dv6oy5x4RNZS/arcgis/rest/services/?f=pjson'],
+  'WY': ['https://gis.wyo.gov/arcgis/rest/services/?f=pjson','https://services1.arcgis.com/kgdkXkhzSm4BXLMH/arcgis/rest/services/?f=pjson'],
+};
+
+function getStateGisServers(stateAbbr) {
+  const key = stateAbbr.toUpperCase().trim();
+  return STATE_GIS_SERVERS[key] || [];
+}
+
 // Extract org IDs from any text
 function extractOrgIds(text) {
   const matches = text.match(/services\.arcgis\.com\/([A-Za-z0-9]{15,20})/g) || [];
@@ -1613,6 +1673,53 @@ async function probeServicesArcgisOrgs(orgIds, logFn) {
   return results.filter(Boolean);
 }
 
+// ── KNOWN SERVER LOOKUP from mappingsupport.com curated CSV ──────────────────
+// 7,500+ verified government ArcGIS server URLs, updated weekly
+let _serverListCache = null;
+
+async function fetchKnownServerList() {
+  if (_serverListCache) return _serverListCache;
+  try {
+    // Fetch the CSV — it's CORS-friendly (plain text, no auth)
+    const resp = await fetch('https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv', {
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!resp.ok) return [];
+    const text = await resp.text();
+    // Parse lines — each line has: jurisdiction, state, URL, type, notes...
+    const lines = text.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+    _serverListCache = lines.map(l => {
+      const parts = l.split(',');
+      return { raw: l, url: (parts[2] || parts[1] || '').trim().replace(/^"|"$/g,'') };
+    }).filter(r => r.url.includes('arcgis') || r.url.includes('/rest/'));
+    return _serverListCache;
+  } catch { return []; }
+}
+
+async function lookupKnownServers(county, state, muni, logFn) {
+  const servers = await fetchKnownServerList();
+  if (!servers.length) {
+    logFn('  ⚠ Could not fetch server list — using pattern probing only');
+    return [];
+  }
+  const terms = [
+    county.toLowerCase(), 
+    muni.toLowerCase().replace(/^(city|town|village|township)\s+of\s+/i,''),
+    state.toLowerCase()
+  ];
+  // Find any server URL containing the county or municipality name
+  const matches = servers.filter(s => {
+    const url = s.url.toLowerCase();
+    return terms.some(t => t.length > 3 && url.includes(t));
+  }).map(s => s.url).slice(0, 6);
+
+  if (matches.length > 0) {
+    logFn(`  📋 Known server list: ${matches.length} match(es) for ${county}/${muni}`, 'success');
+    matches.forEach(u => logFn(`     ${u.substring(0,70)}`, 'success'));
+  }
+  return matches;
+}
+
 async function probeUrl(url, maxChars = 4000) {
   try {
     const resp = await fetch(url, { signal: AbortSignal.timeout(6000) });
@@ -1620,8 +1727,6 @@ async function probeUrl(url, maxChars = 4000) {
     return (await resp.text()).substring(0, maxChars);
   } catch { return null; }
 }
-
-// Multi-turn Claude call with web search. MAX_TURNS=7, max_tokens=10k for speed.
 async function claudeCall(messages, systemPrompt, logFn, searchCounter) {
   const apiKey = getApiKey();
   let msgs = [...messages];
@@ -1700,6 +1805,7 @@ async function callClaudeResearch(muni, county, state, idx) {
   log('⚡ Phases 1+2 running in parallel: endpoint probing + AGO item search + discovery searches...');
 
   const urlsToProbe = ARCGIS_URL_PATTERNS(county, st);
+  const stateServers = getStateGisServers(st);
 
   const discoveryQueries = [
     `${county} County ${st} ArcGIS REST services water sewer utility`,
@@ -1721,10 +1827,13 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}`;
 
-  const [probeSettled, agoItemResult, discoveryResult] = await Promise.all([
+  // Fire all in parallel including the known server list lookup and state clearinghouses
+  const [probeSettled, stateProbeSettled, agoItemResult, discoveryResult, knownServers] = await Promise.all([
     Promise.allSettled(urlsToProbe.map(u => probeUrl(u, 3000))),
+    Promise.allSettled(stateServers.map(u => probeUrl(u, 4000))),
     searchAgoItems(county, st, muni),
-    claudeCall([{ role:'user', content: discoveryUserMsg }], discoverySysPrompt, log, S)
+    claudeCall([{ role:'user', content: discoveryUserMsg }], discoverySysPrompt, log, S),
+    lookupKnownServers(county, st, muni, log)
   ]);
 
   // Process self-hosted probe results
@@ -1735,6 +1844,32 @@ async function callClaudeResearch(muni, county, state, idx) {
       log(`  ✓ Self-hosted: ${urlsToProbe[i].replace('?f=pjson','').substring(0,60)}`, 'success');
     }
   });
+
+  // Process state clearinghouse results
+  const stateEndpoints = [];
+  stateProbeSettled.forEach((r, i) => {
+    if (r.status==='fulfilled' && r.value) {
+      stateEndpoints.push({ url: stateServers[i], content: r.value });
+      log(`  ✓ State GIS server (${st.toUpperCase()}): ${stateServers[i].substring(0,60)}`, 'success');
+    }
+  });
+
+  // Probe known servers from CSV lookup — these are exact verified URLs
+  if (knownServers.length > 0) {
+    log(`  📋 Probing ${knownServers.length} known server(s) from verified list...`);
+    const knownProbeResults = await Promise.all(
+      knownServers.map(async url => {
+        const base = url.replace(/\/?$/, '');
+        const fullUrl = base.includes('?f=') ? base : base + '?f=pjson';
+        const content = await probeUrl(fullUrl, 5000);
+        if (content) {
+          log(`  ✓ Known server confirmed: ${base.substring(0,65)}`, 'success');
+          discoveredEndpoints.push({ url: fullUrl, content });
+        }
+        return content ? { url: fullUrl, content } : null;
+      })
+    );
+  }
 
   const { text: discoveryReport, searchCount: discSearches } = discoveryResult;
 
@@ -1749,7 +1884,7 @@ async function callClaudeResearch(muni, county, state, idx) {
     ...extractAgoServiceUrls(discoveryReport)
   ])];
 
-  log(`  ✓ Discovery: ${discSearches} searches · ${discoveredEndpoints.length} self-hosted · ${allOrgIds.length} org ID(s) · ${allAgoUrls.length} AGO service URL(s)`);
+  log(`  ✓ Discovery: ${discSearches} searches · ${discoveredEndpoints.length} self-hosted · ${knownServers.length} known · ${allOrgIds.length} org ID(s) · ${allAgoUrls.length} AGO URL(s)`);
   if (allOrgIds.length > 0) log(`  🎯 Org IDs: ${allOrgIds.join(', ')}`, 'success');
   if (allAgoUrls.length > 0) allAgoUrls.slice(0,5).forEach(u => log(`  🎯 AGO URL: ${u.substring(0,80)}`, 'success'));
   pip(0,'done'); pip(1,'done'); pip(2,'active');
@@ -1810,13 +1945,16 @@ async function callClaudeResearch(muni, county, state, idx) {
     : '';
 
   const evidenceBlock = [
-    `AGENCY: ${muni}, ${county} County, ${st}`,
+    `AGENCY: ${muni}, ${county} County, ${st.toUpperCase()}`,
     agoLayerBlock,
     agoUrlsNote,
     corsBlockedNote,
     discoveredEndpoints.length > 0
       ? `SELF-HOSTED ENDPOINTS:\n${discoveredEndpoints.map(e=>`${e.url}\n${e.content.substring(0,500)}`).join('\n---\n')}`
       : 'SELF-HOSTED ENDPOINTS: None responded',
+    stateEndpoints.length > 0
+      ? `STATE GIS CLEARINGHOUSE (${st.toUpperCase()}) — search these for ${county} County / ${muni} layers:\n${stateEndpoints.map(e=>`${e.url}\n${e.content.substring(0,600)}`).join('\n---\n')}`
+      : `STATE GIS CLEARINGHOUSE (${st.toUpperCase()}): Could not connect`,
     selfHostedResults.filter(Boolean).length > 0
       ? `SELF-HOSTED LAYER LISTS:\n${selfHostedResults.filter(Boolean).map(p=>`${p.url}\n${p.content.substring(0,1200)}`).join('\n---\n')}`
       : '',
@@ -1828,11 +1966,13 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const synthSysPrompt = `GIS specialist for CivilGrid. Synthesize evidence into JSON.
 
-PRE-ENUMERATED LAYERS: If "PRE-ENUMERATED AGO LAYERS" is in the evidence, those layer names and URLs are already confirmed — copy them directly into water/storm/sewer JSON arrays. Do not re-fetch them.
+PRE-ENUMERATED LAYERS: If "PRE-ENUMERATED AGO LAYERS" is in the evidence, copy those layer URLs directly into water/storm/sewer JSON arrays.
+
+STATE CLEARINGHOUSE: If state GIS clearinghouse content is provided, search it for layers matching ${muni} or ${county} County specifically.
 
 CORS-BLOCKED ORGS: If CORS-blocked org IDs appear, search "{orgId} arcgis water sewer stormwater services" to find their layers.
 
-Do at least 3 gap-fill searches for contacts and missing data.
+Do at least 3 gap-fill searches for contacts and any missing layer data.
 
 Return ONLY JSON starting with { ending with }:
 {"municipality":"","county":"","state":"","portalUrl":null,"portalType":"ArcGIS Hub/Open Data/REST Service/None","dataType":"REST Service/SHP/GDB/PDF Only/None","hasRecycledWater":false,"water":{"layers":[{"name":"","layerId":"0","geometry":"Point/Line/Polygon","url":"","features":[],"is403":false}],"gaps":[],"pdfMaps":[]},"storm":{"layers":[],"gaps":[],"pdfMaps":[]},"sewer":{"layers":[],"gaps":[],"pdfMaps":[]},"recycledWater":{"layers":[],"gaps":[],"pdfMaps":[]},"contacts":[{"tier":1,"name":"","role":"GIS Administrator","email":"","phone":null},{"tier":2,"name":"","role":"Water/Sewer Superintendent","email":"","phone":null},{"tier":3,"name":"","role":"Town Clerk","email":"","phone":null},{"tier":4,"name":null,"role":"General Contact","email":"","phone":null}],"suggestedStatus":"Data Found, Loading in Progress/Data Not Found, Outreach in Progress/Completed, No GIS Data","emailGIS":"","emailUtility":"","researchNotes":""}
