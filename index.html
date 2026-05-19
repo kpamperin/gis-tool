@@ -1823,9 +1823,14 @@ async function callClaudeResearch(muni, county, state, idx) {
     `"${county}" OR "${muni}" council of governments COG arcgis GIS water sewer`
   ];
 
-  const discoverySysPrompt = `GIS data scout. Run ALL ${discoveryQueries.length} searches. CRITICAL: extract every full services.arcgis.com URL you find — including the full URL with org ID, service name, and layer number. Also extract self-hosted ArcGIS REST URLs. Write a plain-text report listing: all services.arcgis.com URLs found (full URLs), all self-hosted ArcGIS REST base URLs, open data portals, named staff with emails. No JSON. Run all searches first.`;
+  const discoverySysPrompt = `GIS data scout. Run ALL searches listed. For any KNOWN SERVERS listed, fetch their ?f=pjson endpoint and report every service name found. CRITICAL: extract every full services.arcgis.com URL. Write a plain-text report: services.arcgis.com URLs found, self-hosted ArcGIS REST base URLs, open data portals, named staff with emails. No JSON. Run all searches first.`;
 
-  const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}`;
+  // Include known servers directly in the discovery message so Claude searches them
+  const knownServerNote = knownServers.length > 0
+    ? `\n\nKNOWN SERVERS FROM VERIFIED LIST (fetch each one at ?f=pjson and list ALL services found):\n${knownServers.map(u => `  ${u}`).join('\n')}`
+    : '';
+
+  const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}${knownServerNote}`;
 
   // Fire all in parallel including the known server list lookup and state clearinghouses
   const [probeSettled, stateProbeSettled, agoItemResult, discoveryResult, knownServers] = await Promise.all([
@@ -1855,21 +1860,20 @@ async function callClaudeResearch(muni, county, state, idx) {
   });
 
   // Probe known servers from CSV lookup — these are exact verified URLs
-  if (knownServers.length > 0) {
-    log(`  📋 Probing ${knownServers.length} known server(s) from verified list...`);
-    const knownProbeResults = await Promise.all(
-      knownServers.map(async url => {
-        const base = url.replace(/\/?$/, '');
-        const fullUrl = base.includes('?f=') ? base : base + '?f=pjson';
-        const content = await probeUrl(fullUrl, 5000);
-        if (content) {
-          log(`  ✓ Known server confirmed: ${base.substring(0,65)}`, 'success');
-          discoveredEndpoints.push({ url: fullUrl, content });
-        }
-        return content ? { url: fullUrl, content } : null;
-      })
-    );
-  }
+  // Try direct fetch first; if CORS blocked, Claude will handle via web search
+  const knownProbeResults = knownServers.length > 0 ? await Promise.all(
+    knownServers.map(async url => {
+      const fullUrl = url.replace(/\/?$/, '') + '?f=pjson';
+      const content = await probeUrl(fullUrl, 5000);
+      if (content) {
+        log(`  ✓ Known server fetched: ${url.substring(0,65)}`, 'success');
+        discoveredEndpoints.push({ url: fullUrl, content });
+      } else {
+        log(`  ⚠ Known server CORS blocked — Claude will search: ${url.substring(0,65)}`);
+      }
+      return content;
+    })
+  ) : [];
 
   const { text: discoveryReport, searchCount: discSearches } = discoveryResult;
 
@@ -1946,6 +1950,9 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const evidenceBlock = [
     `AGENCY: ${muni}, ${county} County, ${st.toUpperCase()}`,
+    knownServers.length > 0
+      ? `📋 VERIFIED SERVER URLs (from curated government GIS list — fetch these at ?f=pjson if not already done):\n${knownServers.map(u=>`  ${u}`).join('\n')}`
+      : '',
     agoLayerBlock,
     agoUrlsNote,
     corsBlockedNote,
@@ -1965,6 +1972,8 @@ async function callClaudeResearch(muni, county, state, idx) {
   ].filter(Boolean).join('\n\n');
 
   const synthSysPrompt = `GIS specialist for CivilGrid. Synthesize evidence into JSON.
+
+VERIFIED SERVERS: If "VERIFIED SERVER URLs" appears in evidence, fetch each one using web_search ("{url} arcgis rest services {muni} utility layers") to find water/sewer/storm layers hosted there.
 
 PRE-ENUMERATED LAYERS: If "PRE-ENUMERATED AGO LAYERS" is in the evidence, copy those layer URLs directly into water/storm/sewer JSON arrays.
 
