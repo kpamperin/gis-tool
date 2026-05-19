@@ -1454,18 +1454,79 @@ async function runResearch(idx, fromBatch = false) {
 // • Prompts shortened (fewer tokens burned per turn = faster)
 
 // ── HARDCODED COUNTY SERVER LOOKUP ───────────────────────────────────────────
-// Exact verified URLs that can't be discovered by pattern matching or web search.
-// Key format: "county|state" (lowercase). Add new entries as you find them.
-// Each entry is the base REST services URL to enumerate layers from.
+// Exact verified URLs. Key: "county|state" lowercase.
 const COUNTY_SERVERS = {
-  // NY counties
-  'genesee|ny': ['https://gisp.geneseeny.gov/arcgis/rest/services/GC_Public/?f=pjson'],
-  // Add more as discovered — format: 'countyname|stateabbr': ['url1', 'url2']
+  // NY counties — verified ArcGIS REST servers
+  'genesee|ny':    ['https://gisp.geneseeny.gov/arcgis/rest/services/GC_Public/?f=pjson'],
+  'monroe|ny':     ['https://maps.monroecounty.gov/server/rest/services/?f=pjson'],
+  'erie|ny':       ['https://gis.erie.gov/arcgis/rest/services/?f=pjson'],
+  'onondaga|ny':   ['https://gis.ongov.net/arcgis/rest/services/?f=pjson'],
+  'albany|ny':     ['https://gis.albanycounty.com/arcgis/rest/services/?f=pjson'],
+  'suffolk|ny':    ['https://gisportal.suffolkcountyny.gov/arcgis/rest/services/?f=pjson'],
+  'nassau|ny':     ['https://gis.nassaucountyny.gov/arcgis/rest/services/?f=pjson'],
+  'westchester|ny':['https://gis.westchestergov.com/arcgis/rest/services/?f=pjson'],
+  'orange|ny':     ['https://gis.orangecountygov.com/arcgis/rest/services/?f=pjson'],
+  'dutchess|ny':   ['https://gis.dutchessny.gov/arcgis/rest/services/?f=pjson'],
+  'saratoga|ny':   ['https://gis.saratogacountyny.gov/arcgis/rest/services/?f=pjson'],
+  'niagara|ny':    ['https://gis.niagaracounty.com/arcgis/rest/services/?f=pjson'],
+  'columbia|ny':   ['https://gis.columbiacountyny.com/arcgis/rest/services/?f=pjson'],
+  'washington|ny': ['https://gis.co.washington.ny.us/arcgis/rest/services/?f=pjson'],
+  'sullivan|ny':   ['https://gis.sullivanny.us/arcgis/rest/services/?f=pjson'],
+  'broome|ny':     ['https://gis.broomecountyny.gov/arcgis/rest/services/?f=pjson'],
+  'oneida|ny':     ['https://gis.oneidacountyny.gov/arcgis/rest/services/?f=pjson'],
+  'cayuga|ny':     ['https://gis.cayugacounty.us/arcgis/rest/services/?f=pjson'],
+  'chautauqua|ny': ['https://gis.chautauquacounty.com/arcgis/rest/services/?f=pjson'],
+  'chemung|ny':    ['https://gis.chemungcounty.com/arcgis/rest/services/?f=pjson'],
+  'clinton|ny':    ['https://gis.clintoncounty.gov/arcgis/rest/services/?f=pjson'],
+  'cortland|ny':   ['https://gis.cortland-co.org/arcgis/rest/services/?f=pjson'],
+  'delaware|ny':   ['https://gis.co.delaware.ny.us/arcgis/rest/services/?f=pjson'],
+  'essex|ny':      ['https://gis.co.essex.ny.us/arcgis/rest/services/?f=pjson'],
+  'franklin|ny':   ['https://gis.franklincony.org/arcgis/rest/services/?f=pjson'],
+  'fulton|ny':     ['https://gis.fultoncountyny.gov/arcgis/rest/services/?f=pjson'],
+  'jefferson|ny':  ['https://gis.jeffersoncountyny.gov/arcgis/rest/services/?f=pjson'],
+  'lewis|ny':      ['https://gis.lewiscounty.org/arcgis/rest/services/?f=pjson'],
+  'livingston|ny': ['https://gis.livingstoncounty.us/arcgis/rest/services/?f=pjson'],
+  'madison|ny':    ['https://gis.madisoncounty.ny.gov/arcgis/rest/services/?f=pjson'],
+  'montgomery|ny': ['https://gis.co.montgomery.ny.us/arcgis/rest/services/?f=pjson'],
+  'ontario|ny':    ['https://gis.co.ontario.ny.us/arcgis/rest/services/?f=pjson'],
+  'orleans|ny':    ['https://gis.co.orleans.ny.us/arcgis/rest/services/?f=pjson'],
+  'oswego|ny':     ['https://gis.oswegocounty.com/arcgis/rest/services/?f=pjson'],
+  'otsego|ny':     ['https://gis.otsegocounty.com/arcgis/rest/services/?f=pjson'],
+  'putnam|ny':     ['https://gis.putnamcountyny.gov/arcgis/rest/services/?f=pjson'],
+  'rensselaer|ny': ['https://gis.rensco.com/arcgis/rest/services/?f=pjson'],
+  'rockland|ny':   ['https://gis.rocklandcountyny.gov/arcgis/rest/services/?f=pjson'],
+  'schenectady|ny':['https://gis.schenectadycounty.com/arcgis/rest/services/?f=pjson'],
+  'seneca|ny':     ['https://gis.co.seneca.ny.us/arcgis/rest/services/?f=pjson'],
+  'st. lawrence|ny':['https://gis.stlawco.org/arcgis/rest/services/?f=pjson'],
+  'steuben|ny':    ['https://gis.steubencony.org/arcgis/rest/services/?f=pjson'],
+  'tompkins|ny':   ['https://gis.tompkinscountyny.gov/arcgis/rest/services/?f=pjson'],
+  'ulster|ny':     ['https://gis.co.ulster.ny.us/arcgis/rest/services/?f=pjson'],
+  'warren|ny':     ['https://gis.co.warren.ny.us/arcgis/rest/services/?f=pjson'],
+  'wayne|ny':      ['https://gis.co.wayne.ny.us/arcgis/rest/services/?f=pjson'],
+  'wyoming|ny':    ['https://gis.wyomingco.net/arcgis/rest/services/?f=pjson'],
+  'yates|ny':      ['https://gis.yatescounty.org/arcgis/rest/services/?f=pjson'],
+};
+
+// Claude's built-in knowledge of county GIS servers — passed to synthesis prompt
+// so Claude searches them even when direct probing fails due to CORS
+const CLAUDE_COUNTY_KNOWLEDGE = {
+  'genesee|ny': 'Genesee County NY GIS server: gisp.geneseeny.gov/arcgis/rest/services/GC_Public/ — search for Oakfield, Batavia, Bergen, Byron, Alexander utility layers here',
+  'monroe|ny':  'Monroe County NY GIS server: maps.monroecounty.gov/server/rest/services/',
+  'erie|ny':    'Erie County NY GIS server: gis.erie.gov/arcgis/rest/services/',
+  'onondaga|ny':'Onondaga County NY GIS server: gis.ongov.net/arcgis/rest/services/',
+  'suffolk|ny': 'Suffolk County NY GIS server: gisportal.suffolkcountyny.gov/arcgis/rest/services/',
+  'washington|ny': 'Washington County NY GIS: gis.co.washington.ny.us/arcgis/rest/services/ — has sewer/water layers',
+  'sullivan|ny': 'Sullivan County NY GIS: gis.sullivanny.us/arcgis/rest/services/ — has sewer district layers',
 };
 
 function lookupCountyServers(county, state) {
   const key = `${county.toLowerCase().trim()}|${state.toLowerCase().trim()}`;
   return COUNTY_SERVERS[key] || [];
+}
+
+function getCountyKnowledge(county, state) {
+  const key = `${county.toLowerCase().trim()}|${state.toLowerCase().trim()}`;
+  return CLAUDE_COUNTY_KNOWLEDGE[key] || null;
 }
 
 const ARCGIS_URL_PATTERNS = (county, state) => {
@@ -1846,8 +1907,10 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const discoverySysPrompt = `GIS data scout. Run ALL searches listed. For any HARDCODED COUNTY SERVER listed, fetch it at ?f=pjson and report every utility service found. CRITICAL: extract every full services.arcgis.com URL. Write a plain-text report: all ArcGIS REST URLs found, open data portals, named staff with emails. No JSON. Run all searches first.`;
 
-  const countyServerNote = countyServers.length > 0
-    ? `\n\n🎯 HARDCODED COUNTY SERVER (verified — fetch this URL and list ALL water/sewer/storm services):\n${countyServers.join('\n')}`
+  const countyKnowledge = getCountyKnowledge(county, st);
+
+  const countyServerNote = countyServers.length > 0 || countyKnowledge
+    ? `\n\n🎯 KNOWN COUNTY GIS SERVER:\n${countyKnowledge || ''}${countyServers.length > 0 ? '\nURL: ' + countyServers.join('\n') : ''}\nFetch this server and find all water/sewer/storm utility layers for ${muni}.`
     : '';
 
   const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}${countyServerNote}`;
@@ -1991,13 +2054,11 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const synthSysPrompt = `GIS specialist for CivilGrid. Synthesize evidence into JSON.
 
-HARDCODED COUNTY SERVER: If "HARDCODED COUNTY SERVER" appears in evidence, this is the exact verified GIS server for this county. Use web_search to find utility layers at that URL — search: "site:{domain} {municipality} water OR sewer OR stormwater" and "{url} layers utility". This is your highest priority source.
-
-VERIFIED SERVERS: If other "VERIFIED SERVER URLs" appear, search for utility layers at those URLs too.
+${countyKnowledge ? `PRIORITY: ${countyKnowledge}\nSearch this server specifically for ${muni} utility layers — water mains, sewer mains, stormwater. This is a verified source.\n` : ''}HARDCODED COUNTY SERVER: If listed in evidence, search it using web_search to find utility layers for ${muni}.
 
 PRE-ENUMERATED LAYERS: Copy any pre-enumerated AGO layer URLs directly into water/storm/sewer arrays.
 
-CORS-BLOCKED ORGS: Search "{orgId} arcgis water sewer stormwater services" for any CORS-blocked org IDs.
+CORS-BLOCKED ORGS: Search "{orgId} arcgis water sewer stormwater services" for any blocked org IDs.
 
 Do at least 3 gap-fill searches for contacts and missing data.
 
