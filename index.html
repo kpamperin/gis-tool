@@ -790,21 +790,23 @@
     <!-- API Key -->
     <div class="apikey-section">
       <div class="panel-label" style="margin-bottom:7px">🔑 Anthropic API Key</div>
-      <div class="apikey-row">
-        <div class="apikey-input-wrap">
-          <input type="text" id="inp-apikey" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-            style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.03em;-webkit-text-security:disc;"
-            oninput="onApiKeyChange()" onchange="onApiKeyChange()" onkeyup="onApiKeyChange()" onpaste="setTimeout(onApiKeyChange,10)" />
-          <button class="apikey-toggle" onclick="toggleApiKeyVisibility()" title="Show/hide key">👁</button>
-        </div>
+      <div style="font-size:10px;color:var(--warning);font-family:var(--font-mono);margin-bottom:6px;">⚠ Clear the field first, then paste your key</div>
+      <textarea id="inp-apikey"
+        rows="2"
+        placeholder="Paste your sk-ant-... key here"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:10px;padding:8px;border-radius:6px;resize:none;outline:none;line-break:anywhere;word-break:break-all;"
+        oninput="onApiKeyChange()" onchange="onApiKeyChange()" onkeyup="onApiKeyChange()" onpaste="setTimeout(onApiKeyChange,50)"
+      ></textarea>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
         <div class="apikey-status unset" id="apikey-status">NOT SET</div>
+        <div style="flex:1;display:flex;gap:6px;">
+          <button onclick="saveApiKey()" style="flex:1;background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.4);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;font-weight:700;">✓ SAVE</button>
+          <button onclick="testApiKey()" style="flex:1;background:rgba(0,184,255,0.1);border:1px solid rgba(0,184,255,0.3);color:var(--accent2);font-family:var(--font-mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;">🧪 TEST</button>
+          <button onclick="clearApiKey()" style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);color:var(--error);font-family:var(--font-mono);font-size:10px;padding:6px 10px;border-radius:4px;cursor:pointer;">✕</button>
+        </div>
       </div>
-      <div style="display:flex;gap:6px;margin-top:6px;">
-        <button onclick="saveApiKey()" style="flex:1;background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.4);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;letter-spacing:0.05em;font-weight:700;">✓ SAVE KEY</button>
-        <button onclick="testApiKey()" style="flex:1;background:rgba(0,184,255,0.1);border:1px solid rgba(0,184,255,0.3);color:var(--accent2);font-family:var(--font-mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;letter-spacing:0.05em;">🧪 TEST</button>
-      </div>
-      <div id="api-test-result" style="font-size:10px;margin-top:5px;font-family:var(--font-mono);"></div>
-      <div style="font-size:10px;color:var(--text-dimmer);margin-top:4px;">Key stays in browser only. Paste your key, click Save, then Test.</div>
+      <div id="api-test-result" style="font-size:10px;margin-top:5px;font-family:var(--font-mono);min-height:14px;"></div>
     </div>
 
     <!-- Sender Profile -->
@@ -1179,11 +1181,20 @@ async function testApiKey() {
   }
 }
 
+function clearApiKey() {
+  const el = document.getElementById('inp-apikey');
+  if (el) { el.value = ''; el.focus(); }
+  _savedApiKey = '';
+  updateApiKeyStatus('');
+  document.getElementById('api-test-result').textContent = '';
+}
+
 // ─── API KEY MANAGEMENT ───────────────────────────────────────────────────────
-let _savedApiKey = ''; // in-memory store as backup for browsers that block input reading
+let _savedApiKey = '';
 
 function getApiKey() {
-  const fromField = document.getElementById('inp-apikey')?.value?.trim() || '';
+  const el = document.getElementById('inp-apikey');
+  const fromField = (el?.value || '').trim().replace(/\s+/g, '');
   return fromField || _savedApiKey;
 }
 
