@@ -1453,6 +1453,21 @@ async function runResearch(idx, fromBatch = false) {
 // • MAX_TURNS cut to 7 (was 12)
 // • Prompts shortened (fewer tokens burned per turn = faster)
 
+// ── HARDCODED COUNTY SERVER LOOKUP ───────────────────────────────────────────
+// Exact verified URLs that can't be discovered by pattern matching or web search.
+// Key format: "county|state" (lowercase). Add new entries as you find them.
+// Each entry is the base REST services URL to enumerate layers from.
+const COUNTY_SERVERS = {
+  // NY counties
+  'genesee|ny': ['https://gisp.geneseeny.gov/arcgis/rest/services/GC_Public/?f=pjson'],
+  // Add more as discovered — format: 'countyname|stateabbr': ['url1', 'url2']
+};
+
+function lookupCountyServers(county, state) {
+  const key = `${county.toLowerCase().trim()}|${state.toLowerCase().trim()}`;
+  return COUNTY_SERVERS[key] || [];
+}
+
 const ARCGIS_URL_PATTERNS = (county, state) => {
   const c = county.toLowerCase().replace(/\s+/g, '');
   const cDash = county.toLowerCase().replace(/\s+/g, '-');
@@ -1806,6 +1821,12 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const urlsToProbe = ARCGIS_URL_PATTERNS(county, st);
   const stateServers = getStateGisServers(st);
+  const countyServers = lookupCountyServers(county, st);
+
+  // Probe hardcoded county servers immediately — these are exact known URLs
+  if (countyServers.length > 0) {
+    log(`🎯 Hardcoded county server found for ${county} County ${st.toUpperCase()}: ${countyServers[0].substring(0,65)}`, 'success');
+  }
 
   const discoveryQueries = [
     `${county} County ${st} ArcGIS REST services water sewer utility`,
@@ -1823,22 +1844,28 @@ async function callClaudeResearch(muni, county, state, idx) {
     `"${county}" OR "${muni}" council of governments COG arcgis GIS water sewer`
   ];
 
-  const discoverySysPrompt = `GIS data scout. Run ALL searches listed. For any KNOWN SERVERS listed, fetch their ?f=pjson endpoint and report every service name found. CRITICAL: extract every full services.arcgis.com URL. Write a plain-text report: services.arcgis.com URLs found, self-hosted ArcGIS REST base URLs, open data portals, named staff with emails. No JSON. Run all searches first.`;
+  const discoverySysPrompt = `GIS data scout. Run ALL searches listed. For any KNOWN SERVERS or HARDCODED COUNTY SERVER listed, fetch their ?f=pjson endpoint and report every service name found. CRITICAL: extract every full services.arcgis.com URL. Write a plain-text report: services.arcgis.com URLs found, self-hosted ArcGIS REST base URLs, open data portals, named staff with emails. No JSON. Run all searches first.`;
 
-  // Include known servers directly in the discovery message so Claude searches them
-  const knownServerNote = knownServers.length > 0
-    ? `\n\nKNOWN SERVERS FROM VERIFIED LIST (fetch each one at ?f=pjson and list ALL services found):\n${knownServers.map(u => `  ${u}`).join('\n')}`
+  // Fetch known server list first so it can be included in the Claude discovery message
+  const knownServers = await lookupKnownServers(county, st, muni, log);
+
+  const countyServerNote = countyServers.length > 0
+    ? `\n\n🎯 HARDCODED COUNTY SERVER (verified exact URL — fetch this and list ALL services with utility/water/sewer/storm in the name):\n${countyServers.map(u => `  ${u}`).join('\n')}`
     : '';
 
-  const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}${knownServerNote}`;
+  const knownServerNote = knownServers.length > 0
+    ? `\n\nKNOWN SERVERS FROM VERIFIED LIST (fetch each at ?f=pjson and list ALL services found):\n${knownServers.map(u => `  ${u}`).join('\n')}`
+    : '';
 
-  // Fire all in parallel including the known server list lookup and state clearinghouses
-  const [probeSettled, stateProbeSettled, agoItemResult, discoveryResult, knownServers] = await Promise.all([
+  const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}${countyServerNote}${knownServerNote}`;
+
+  // Fire all remaining in parallel
+  const [probeSettled, stateProbeSettled, countyProbeSettled, agoItemResult, discoveryResult] = await Promise.all([
     Promise.allSettled(urlsToProbe.map(u => probeUrl(u, 3000))),
     Promise.allSettled(stateServers.map(u => probeUrl(u, 4000))),
+    Promise.allSettled(countyServers.map(u => probeUrl(u, 6000))),
     searchAgoItems(county, st, muni),
-    claudeCall([{ role:'user', content: discoveryUserMsg }], discoverySysPrompt, log, S),
-    lookupKnownServers(county, st, muni, log)
+    claudeCall([{ role:'user', content: discoveryUserMsg }], discoverySysPrompt, log, S)
   ]);
 
   // Process self-hosted probe results
@@ -1847,6 +1874,17 @@ async function callClaudeResearch(muni, county, state, idx) {
     if (r.status==='fulfilled' && r.value) {
       discoveredEndpoints.push({ url: urlsToProbe[i], content: r.value });
       log(`  ✓ Self-hosted: ${urlsToProbe[i].replace('?f=pjson','').substring(0,60)}`, 'success');
+    }
+  });
+
+  // Process hardcoded county server results
+  const countyEndpoints = [];
+  countyProbeSettled.forEach((r, i) => {
+    if (r.status==='fulfilled' && r.value) {
+      countyEndpoints.push({ url: countyServers[i], content: r.value });
+      log(`  ✓ County server fetched: ${countyServers[i].substring(0,65)}`, 'success');
+    } else if (countyServers[i]) {
+      log(`  ⚠ County server CORS blocked — Claude searching: ${countyServers[i].substring(0,65)}`);
     }
   });
 
@@ -1950,8 +1988,11 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const evidenceBlock = [
     `AGENCY: ${muni}, ${county} County, ${st.toUpperCase()}`,
+    countyServers.length > 0
+      ? `🎯 HARDCODED COUNTY SERVER FOR ${county.toUpperCase()} COUNTY ${st.toUpperCase()} — search for ${muni} utility layers here:\n${countyServers.map(u=>`  ${u}`).join('\n')}${countyEndpoints.length > 0 ? '\n\nSERVICE CATALOG FETCHED:\n'+countyEndpoints.map(e=>e.content.substring(0,2000)).join('\n') : '\n(CORS blocked — use web_search to find layers at this URL)'}`
+      : '',
     knownServers.length > 0
-      ? `📋 VERIFIED SERVER URLs (from curated government GIS list — fetch these at ?f=pjson if not already done):\n${knownServers.map(u=>`  ${u}`).join('\n')}`
+      ? `📋 VERIFIED SERVER URLs (search these for ${muni} utility layers):\n${knownServers.map(u=>`  ${u}`).join('\n')}`
       : '',
     agoLayerBlock,
     agoUrlsNote,
@@ -1973,15 +2014,15 @@ async function callClaudeResearch(muni, county, state, idx) {
 
   const synthSysPrompt = `GIS specialist for CivilGrid. Synthesize evidence into JSON.
 
-VERIFIED SERVERS: If "VERIFIED SERVER URLs" appears in evidence, fetch each one using web_search ("{url} arcgis rest services {muni} utility layers") to find water/sewer/storm layers hosted there.
+HARDCODED COUNTY SERVER: If "HARDCODED COUNTY SERVER" appears in evidence, this is the exact verified GIS server for this county. Use web_search to find utility layers at that URL — search: "site:{domain} {municipality} water OR sewer OR stormwater" and "{url} layers utility". This is your highest priority source.
 
-PRE-ENUMERATED LAYERS: If "PRE-ENUMERATED AGO LAYERS" is in the evidence, copy those layer URLs directly into water/storm/sewer JSON arrays.
+VERIFIED SERVERS: If other "VERIFIED SERVER URLs" appear, search for utility layers at those URLs too.
 
-STATE CLEARINGHOUSE: If state GIS clearinghouse content is provided, search it for layers matching ${muni} or ${county} County specifically.
+PRE-ENUMERATED LAYERS: Copy any pre-enumerated AGO layer URLs directly into water/storm/sewer arrays.
 
-CORS-BLOCKED ORGS: If CORS-blocked org IDs appear, search "{orgId} arcgis water sewer stormwater services" to find their layers.
+CORS-BLOCKED ORGS: Search "{orgId} arcgis water sewer stormwater services" for any CORS-blocked org IDs.
 
-Do at least 3 gap-fill searches for contacts and any missing layer data.
+Do at least 3 gap-fill searches for contacts and missing data.
 
 Return ONLY JSON starting with { ending with }:
 {"municipality":"","county":"","state":"","portalUrl":null,"portalType":"ArcGIS Hub/Open Data/REST Service/None","dataType":"REST Service/SHP/GDB/PDF Only/None","hasRecycledWater":false,"water":{"layers":[{"name":"","layerId":"0","geometry":"Point/Line/Polygon","url":"","features":[],"is403":false}],"gaps":[],"pdfMaps":[]},"storm":{"layers":[],"gaps":[],"pdfMaps":[]},"sewer":{"layers":[],"gaps":[],"pdfMaps":[]},"recycledWater":{"layers":[],"gaps":[],"pdfMaps":[]},"contacts":[{"tier":1,"name":"","role":"GIS Administrator","email":"","phone":null},{"tier":2,"name":"","role":"Water/Sewer Superintendent","email":"","phone":null},{"tier":3,"name":"","role":"Town Clerk","email":"","phone":null},{"tier":4,"name":null,"role":"General Contact","email":"","phone":null}],"suggestedStatus":"Data Found, Loading in Progress/Data Not Found, Outreach in Progress/Completed, No GIS Data","emailGIS":"","emailUtility":"","researchNotes":""}
