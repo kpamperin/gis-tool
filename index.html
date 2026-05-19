@@ -1458,12 +1458,29 @@ const ARCGIS_URL_PATTERNS = (county, state) => {
   const cDash = county.toLowerCase().replace(/\s+/g, '-');
   const st = state.toLowerCase();
   return [
-    `https://${c}gis.com/arcgis/rest/services/?f=pjson`,
+    // Standard county GIS patterns
     `https://gis.${c}.gov/arcgis/rest/services/?f=pjson`,
     `https://gis.${c}county.gov/arcgis/rest/services/?f=pjson`,
     `https://gis.${c}${st}.gov/arcgis/rest/services/?f=pjson`,
+    `https://${c}gis.com/arcgis/rest/services/?f=pjson`,
     `https://maps.${c}.gov/arcgis/rest/services/?f=pjson`,
+    // gisp.* patterns — widely used by NY counties
+    `https://gisp.${c}ny.gov/arcgis/rest/services/?f=pjson`,
+    `https://gisp.${c}.gov/arcgis/rest/services/?f=pjson`,
+    `https://gisp.${c}county.gov/arcgis/rest/services/?f=pjson`,
+    // gisportal / gisserver / gis2 / arcgis subdomain patterns
+    `https://gisportal.${c}.gov/arcgis/rest/services/?f=pjson`,
+    `https://gisserver.${c}.gov/arcgis/rest/services/?f=pjson`,
+    `https://gis2.${c}.gov/arcgis/rest/services/?f=pjson`,
+    `https://arcgis.${c}.gov/arcgis/rest/services/?f=pjson`,
+    // COG / regional council patterns — maps.{cog}.org (e.g. maps.etcog.org)
+    `https://maps.${c}cog.org/arcgis/rest/services/?f=pjson`,
+    `https://maps.${c}council.org/arcgis/rest/services/?f=pjson`,
+    `https://gis.${c}cog.org/arcgis/rest/services/?f=pjson`,
+    `https://arcgis.${c}cog.org/arcgis/rest/services/?f=pjson`,
+    // Hub patterns
     `https://${cDash}-${st}.hub.arcgis.com`,
+    `https://gis-data-co${c}${st}.hub.arcgis.com`,
   ];
 };
 
@@ -1694,7 +1711,10 @@ async function callClaudeResearch(muni, county, state, idx) {
     `${county} county ${st} hub.arcgis.com open data`,
     `"${muni}" town clerk water superintendent contact email`,
     `site:arcgis.com "${county}" water sewer stormwater feature service`,
-    `"${county}" "${st}" services.arcgis.com utility GIS layers`
+    `"${county}" "${st}" services.arcgis.com utility GIS layers`,
+    `gisp.${county.toLowerCase().replace(/\s+/g,'')}ny.gov arcgis rest services`,
+    `"${county}" NY arcgis server gisp OR gisportal OR gis2 water sewer`,
+    `"${county}" OR "${muni}" council of governments COG arcgis GIS water sewer`
   ];
 
   const discoverySysPrompt = `GIS data scout. Run ALL ${discoveryQueries.length} searches. CRITICAL: extract every full services.arcgis.com URL you find — including the full URL with org ID, service name, and layer number. Also extract self-hosted ArcGIS REST URLs. Write a plain-text report listing: all services.arcgis.com URLs found (full URLs), all self-hosted ArcGIS REST base URLs, open data portals, named staff with emails. No JSON. Run all searches first.`;
