@@ -1753,23 +1753,16 @@ async function callClaudeResearch(muni, county, state, idx) {
   ]);
 
   const deepProbes = [...selfHostedResults.filter(Boolean)];
-  // Add services.arcgis.com results that actually got content
-  const agoOrgCatalogs = servicesArcgisResults.filter(r => r.content);
-  const agoOrgCorsBlocked = servicesArcgisResults.filter(r => r.corsBlocked);
-  deepProbes.push(...agoOrgCatalogs);
-
-  log(`  Self-hosted: ${selfHostedResults.filter(Boolean).length} · AGO org catalogs: ${agoOrgCatalogs.length} fetched · ${agoOrgCorsBlocked.length} CORS-blocked (will pass to Claude)`);
-  pip(2,'done'); pip(3,'active');
-
-  // Flatten all pre-enumerated AGO layers for the evidence block
   const agoEnumeratedLayers = servicesArcgisResults.flatMap(r => r.layers || []);
   const agoOrgCatalogs = servicesArcgisResults.filter(r => !r.corsBlocked);
   const agoOrgCorsBlocked = servicesArcgisResults.filter(r => r.corsBlocked);
+  deepProbes.push(...agoOrgCatalogs);
 
-  log(`  AGO layer enumeration: ${agoOrgCatalogs.length} orgs · ${agoEnumeratedLayers.length} layers pre-extracted · ${agoOrgCorsBlocked.length} CORS-blocked`);
+  log(`  Self-hosted: ${selfHostedResults.filter(Boolean).length} · AGO org catalogs: ${agoOrgCatalogs.length} fetched · ${agoOrgCorsBlocked.length} CORS-blocked`);
   if (agoEnumeratedLayers.length > 0) {
     agoEnumeratedLayers.forEach(l => log(`    🗂 ${l.name} → ${l.url.substring(0,70)}`, 'success'));
   }
+  pip(2,'done'); pip(3,'active');
 
   // ── PHASE 4: Synthesis ────────────────────────────────────────────────────
   log('🧠 Phase 4: Synthesis + gap-fill...');
