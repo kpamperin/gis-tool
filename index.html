@@ -1844,22 +1844,15 @@ async function callClaudeResearch(muni, county, state, idx) {
     `"${county}" OR "${muni}" council of governments COG arcgis GIS water sewer`
   ];
 
-  const discoverySysPrompt = `GIS data scout. Run ALL searches listed. For any KNOWN SERVERS or HARDCODED COUNTY SERVER listed, fetch their ?f=pjson endpoint and report every service name found. CRITICAL: extract every full services.arcgis.com URL. Write a plain-text report: services.arcgis.com URLs found, self-hosted ArcGIS REST base URLs, open data portals, named staff with emails. No JSON. Run all searches first.`;
-
-  // Fetch known server list first so it can be included in the Claude discovery message
-  const knownServers = await lookupKnownServers(county, st, muni, log);
+  const discoverySysPrompt = `GIS data scout. Run ALL searches listed. For any HARDCODED COUNTY SERVER listed, fetch it at ?f=pjson and report every utility service found. CRITICAL: extract every full services.arcgis.com URL. Write a plain-text report: all ArcGIS REST URLs found, open data portals, named staff with emails. No JSON. Run all searches first.`;
 
   const countyServerNote = countyServers.length > 0
-    ? `\n\n🎯 HARDCODED COUNTY SERVER (verified exact URL — fetch this and list ALL services with utility/water/sewer/storm in the name):\n${countyServers.map(u => `  ${u}`).join('\n')}`
+    ? `\n\n🎯 HARDCODED COUNTY SERVER (verified — fetch this URL and list ALL water/sewer/storm services):\n${countyServers.join('\n')}`
     : '';
 
-  const knownServerNote = knownServers.length > 0
-    ? `\n\nKNOWN SERVERS FROM VERIFIED LIST (fetch each at ?f=pjson and list ALL services found):\n${knownServers.map(u => `  ${u}`).join('\n')}`
-    : '';
+  const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}${countyServerNote}`;
 
-  const discoveryUserMsg = `Run these searches:\n${discoveryQueries.map((q,i)=>`${i+1}. "${q}"`).join('\n')}${countyServerNote}${knownServerNote}`;
-
-  // Fire all remaining in parallel
+  // Fire everything in parallel — no blocking calls before this
   const [probeSettled, stateProbeSettled, countyProbeSettled, agoItemResult, discoveryResult] = await Promise.all([
     Promise.allSettled(urlsToProbe.map(u => probeUrl(u, 3000))),
     Promise.allSettled(stateServers.map(u => probeUrl(u, 4000))),
@@ -1897,22 +1890,6 @@ async function callClaudeResearch(muni, county, state, idx) {
     }
   });
 
-  // Probe known servers from CSV lookup — these are exact verified URLs
-  // Try direct fetch first; if CORS blocked, Claude will handle via web search
-  const knownProbeResults = knownServers.length > 0 ? await Promise.all(
-    knownServers.map(async url => {
-      const fullUrl = url.replace(/\/?$/, '') + '?f=pjson';
-      const content = await probeUrl(fullUrl, 5000);
-      if (content) {
-        log(`  ✓ Known server fetched: ${url.substring(0,65)}`, 'success');
-        discoveredEndpoints.push({ url: fullUrl, content });
-      } else {
-        log(`  ⚠ Known server CORS blocked — Claude will search: ${url.substring(0,65)}`);
-      }
-      return content;
-    })
-  ) : [];
-
   const { text: discoveryReport, searchCount: discSearches } = discoveryResult;
 
   // Collect ALL org IDs and AGO service URLs from every source
@@ -1926,7 +1903,7 @@ async function callClaudeResearch(muni, county, state, idx) {
     ...extractAgoServiceUrls(discoveryReport)
   ])];
 
-  log(`  ✓ Discovery: ${discSearches} searches · ${discoveredEndpoints.length} self-hosted · ${knownServers.length} known · ${allOrgIds.length} org ID(s) · ${allAgoUrls.length} AGO URL(s)`);
+  log(`  ✓ Discovery: ${discSearches} searches · ${discoveredEndpoints.length} self-hosted · ${countyEndpoints.length} county · ${allOrgIds.length} org ID(s) · ${allAgoUrls.length} AGO URL(s)`);
   if (allOrgIds.length > 0) log(`  🎯 Org IDs: ${allOrgIds.join(', ')}`, 'success');
   if (allAgoUrls.length > 0) allAgoUrls.slice(0,5).forEach(u => log(`  🎯 AGO URL: ${u.substring(0,80)}`, 'success'));
   pip(0,'done'); pip(1,'done'); pip(2,'active');
@@ -1991,8 +1968,8 @@ async function callClaudeResearch(muni, county, state, idx) {
     countyServers.length > 0
       ? `🎯 HARDCODED COUNTY SERVER FOR ${county.toUpperCase()} COUNTY ${st.toUpperCase()} — search for ${muni} utility layers here:\n${countyServers.map(u=>`  ${u}`).join('\n')}${countyEndpoints.length > 0 ? '\n\nSERVICE CATALOG FETCHED:\n'+countyEndpoints.map(e=>e.content.substring(0,2000)).join('\n') : '\n(CORS blocked — use web_search to find layers at this URL)'}`
       : '',
-    knownServers.length > 0
-      ? `📋 VERIFIED SERVER URLs (search these for ${muni} utility layers):\n${knownServers.map(u=>`  ${u}`).join('\n')}`
+    countyServers.length > 0
+      ? `🎯 HARDCODED COUNTY SERVER FOR ${county.toUpperCase()} COUNTY ${st.toUpperCase()} — search for ${muni} utility layers here:\n${countyServers.join('\n')}${countyEndpoints.length > 0 ? '\n\nSERVICE CATALOG:\n'+countyEndpoints.map(e=>e.content.substring(0,2000)).join('\n') : '\n(CORS blocked — Claude: use web_search on this URL to find layers)'}`
       : '',
     agoLayerBlock,
     agoUrlsNote,
